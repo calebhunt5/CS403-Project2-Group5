@@ -1,3 +1,5 @@
+// Auto-generated template from Android Studio
+
 package com.example.myapplication.ui.login;
 
 import android.app.Activity;
@@ -5,6 +7,7 @@ import android.app.Activity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -17,12 +20,14 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.myapplication.R;
+import com.example.myapplication.RegisterActivity;
 import com.example.myapplication.ui.login.LoginViewModel;
 import com.example.myapplication.ui.login.LoginViewModelFactory;
 import com.example.myapplication.databinding.ActivityLoginBinding;
@@ -44,7 +49,9 @@ public class LoginActivity extends AppCompatActivity {
 
         final EditText etLoginEmail = binding.etLoginEmail;
         final EditText etLoginPassword = binding.etLoginPassword;
+        final CheckBox chkRemember = binding.chkRemember;
         final Button btnLogin = binding.btnLogin;
+        final Button btnRegister = binding.btnRegister;
         final ProgressBar loadingProgressBar = binding.loading;
 
         loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
@@ -118,6 +125,12 @@ public class LoginActivity extends AppCompatActivity {
             loadingProgressBar.setVisibility(View.VISIBLE);
             loginViewModel.login(etLoginEmail.getText().toString(),
                     etLoginPassword.getText().toString());
+        });
+
+        // Switch to register activity
+        btnRegister.setOnClickListener(v -> {
+            Intent i = new Intent(this, RegisterActivity.class);
+            startActivity(i);
         });
     }
 
