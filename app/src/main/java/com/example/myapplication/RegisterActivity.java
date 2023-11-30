@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 
-import com.example.myapplication.ui.login.LoginActivity;
-
 public class RegisterActivity extends AppCompatActivity {
 
     Button btnRegister;
