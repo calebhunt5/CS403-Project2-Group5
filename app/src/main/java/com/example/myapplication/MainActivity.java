@@ -8,18 +8,23 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btnExtended;
+    Button btnExtended, btnMaps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //this is my little dummy dev button for temporary
-        //instead of making the extended activity the launching activity
+        //these are my little buttons for temporary development tings
         btnExtended = findViewById(R.id.btnExtended);
         btnExtended.setOnClickListener(e -> {
             Intent extended = new Intent(this, ExtendedActivity.class);
+            startActivity(extended);
+        });
+
+        btnMaps = findViewById(R.id.btnMaps);
+        btnMaps.setOnClickListener(e -> {
+            Intent extended = new Intent(this, MapsActivity.class);
             startActivity(extended);
         });
     }
