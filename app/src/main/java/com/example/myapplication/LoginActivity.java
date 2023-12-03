@@ -17,12 +17,15 @@ import com.google.android.material.textfield.TextInputLayout;
 import java.util.ArrayList;
 import java.util.List;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
+
 public class LoginActivity extends AppCompatActivity {
     TextInputLayout tilLoginEmail, tilLoginPassword;
-    EditText etLoginEmail, etLoginPassword;
+    EditText etLoginEmail,  etLoginPassword;
     CheckBox chkRemember;
     Button btnLogin, btnRegister;
 
+    // Booleans to check if email and password are valid
     boolean blnEmail = false, blnPassword = false;
 
     // Store list of dummy users of class User
@@ -33,29 +36,52 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Get references to EditText, CheckBox, and Buttons
-        tilLoginEmail = findViewById(R.id.tilLoginEmail);
-        tilLoginPassword = findViewById(R.id.tilLoginPassword);
-        etLoginEmail = findViewById(R.id.etLoginEmail);
-        etLoginPassword = findViewById(R.id.etLoginPassword);
-        chkRemember = findViewById(R.id.chkRemember);
-        btnLogin = findViewById(R.id.btnLogin);
-        btnRegister = findViewById(R.id.btnRegister);
+        // Get references to EditTexts, CheckBox, and Buttons
+        getViews();
 
         // Create dummy users
         createUsers();
 
+        // Enables login button if both email and password are valid
         emailTextChanged();
         passwordChanged();
 
+        // Stay logged in
+        // TODO - Save user instance
+        chkRemember.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked)
+                Toast.makeText(this, "Remember me :)", Toast.LENGTH_SHORT).show();
+            else
+                Toast.makeText(this, "Don't remember me :(", Toast.LENGTH_SHORT).show();
+        });
+
+        // Checks if email and password match a user
         btnLogin.setOnClickListener(v -> {
             login();
         });
 
+        // Go to RegisterActivity
         btnRegister.setOnClickListener(v -> {
             Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(i);
         });
+    }
+
+    // Get references to EditTexts, CheckBox, and Buttons
+    public void getViews() {
+        tilLoginEmail = findViewById(R.id.tilLoginEmail);
+        tilLoginPassword = findViewById(R.id.tilLoginPassword);
+
+        // Remove error icons for password
+        tilLoginPassword.setErrorIconDrawable(0);
+
+        etLoginEmail = findViewById(R.id.etLoginEmail);
+        etLoginPassword = findViewById(R.id.etLoginPassword);
+
+        chkRemember = findViewById(R.id.chkRemember);
+
+        btnLogin = findViewById(R.id.btnLogin);
+        btnRegister = findViewById(R.id.btnRegister);
     }
 
     // Email validation
@@ -74,7 +100,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 // Check if email is valid
-                if (s.toString().contains("@") && s.toString().contains(".")) {
+                if (s.toString().contains("@") && s.toString().contains(".") && !s.toString().isEmpty() && !s.toString().contains(" ")) {
                     blnEmail = true;
                     tilLoginEmail.setError(null);
                 }
@@ -106,43 +132,44 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 // Check if password is valid
-                if (s.toString().length() >= 8) {
+                if (s.toString().length() >= 1 && !s.toString().isEmpty() && !s.toString().contains(" "))
                     blnPassword = true;
-                    tilLoginPassword.setError(null);
-                }
-                else {
+                else
                     blnPassword = false;
-                    tilLoginPassword.setError("Password must be at least 8 characters");
-                }
 
                 // Enable login button if both email and password are valid
-                if (blnEmail && blnPassword) {
+                if (blnEmail && blnPassword)
                     btnLogin.setEnabled(true);
-                } else {
+                else
                     btnLogin.setEnabled(false);
-                }
             }
         });
     }
 
+    // Check if email and password match a user
     public void login() {
         // Get email and password from EditText
         String strEmail = etLoginEmail.getText().toString();
         String strPassword = etLoginPassword.getText().toString();
 
-        boolean blnNotFound = false;
+        boolean blnPasswordMatch;   // Check if password matches hashed password
+        boolean blnNotFound = false;// Check if email and password match a user
 
         // Check if email and password are valid
         if (blnEmail && blnPassword) {
             // Check if email and password match a user
             for (User user : lstUsers) {
-                if (user.getStrEmail().equals(strEmail) && user.getStrPassword().equals(strPassword)) {
+                // Check if password matches hashed password
+                blnPasswordMatch = verifyPassword(strPassword, user.getStrPassword());
+
+                if (user.getStrEmail().equals(strEmail) && blnPasswordMatch) {
                     blnNotFound = false;
 
                     // Login successful
                     Intent i = new Intent(LoginActivity.this, LaunchActivity.class);
                     startActivity(i);
                     finish();
+                    break;
                 }
                 else
                     blnNotFound = true;
@@ -153,12 +180,23 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Email or password is incorrect", Toast.LENGTH_LONG).show();
     }
 
+    // Uses bcrypt to hash password and return hashed password
+    public String hashPassword(String strPassword) {
+        String strBcryptPassword = BCrypt.withDefaults().hashToString(12, strPassword.toCharArray());
+        return strBcryptPassword;
+    }
+
+    // Uses bcrypt to verify password and return true if password matches hashed password
+    public boolean verifyPassword(String strPassword, String strBcryptPassword) {
+        BCrypt.Result result = BCrypt.verifyer().verify(strPassword.toCharArray(), strBcryptPassword);
+        return result.verified;
+    }
+
     // Create dummy users
     public void createUsers() {
         lstUsers = new ArrayList<>();
-        lstUsers.add(new User("john@gmail.com", "John Madden", "password1"));
-        lstUsers.add(new User("gordon@gmail.com", "Gordon Freeman", "password2"));
-        lstUsers.add(new User("oniell@gmail.com", "Jack O'Neill", "password3"));
+        lstUsers.add(new User("john@gmail.com", "John Madden", hashPassword("password1")));
+        lstUsers.add(new User("gordon@gmail.com", "Gordon Freeman", hashPassword("password2")));
+        lstUsers.add(new User("oniell@gmail.com", "Jack O'Neill", hashPassword("password3")));
     }
-
 }
