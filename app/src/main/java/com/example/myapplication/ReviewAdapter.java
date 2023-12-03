@@ -47,7 +47,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
         /*
             TODO
-            * Set stars based on review
+            * Set stars based on average review
             * On click for like & more like functionality
          */
 
@@ -55,7 +55,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         holder.tvName.setText(review.userName);
         holder.tvLikes.setText(review.likes+"");
 
-        //set stars image based on likes
+        //set stars image based on review stars
         switch (review.rating) {
             case 1:
                 holder.ivStars.setImageResource(R.drawable.one_star);
