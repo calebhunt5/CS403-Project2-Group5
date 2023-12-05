@@ -33,7 +33,21 @@ public class SettingsActivity extends AppCompatActivity {
         swtDarkMode = findViewById(R.id.swtDarkMode);
         swtNotifications = findViewById(R.id.swtNotifications);
 
+        // Initialize settings in shared preferences
+        if (!sharedPreferences.contains("settingsDarkMode")){
+            editor.putBoolean("settingsDarkMode", false);
+            editor.apply();
+        }
+        if (!sharedPreferences.contains("settingsNotifications")){
+            editor.putBoolean("settingsNotifications", false);
+            editor.apply();
+        }
+
         // Set stored preferences
+        if (sharedPreferences.contains("settingsDefaultAddress")){
+            tvDefaultAddress.setText(sharedPreferences.getString("settingsDefaultAddress",""));
+        }
+
         if (sharedPreferences.getBoolean("settingsDarkMode",false)) {
             swtDarkMode.setChecked(true);
             swtDarkMode.setText("On");
@@ -51,7 +65,5 @@ public class SettingsActivity extends AppCompatActivity {
             swtNotifications.setChecked(false);
             swtNotifications.setText("Off");
         }
-
-        // TODO - Populate address
     }
 }
