@@ -182,7 +182,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void onInfoWindowClick(@NonNull Marker marker) {
                     Intent extended = new Intent(v.getContext(), ExtendedActivity.class);
-                    //extended.putExtra("storeID", currentPanda.storeID);
+                    extended.putExtra("storeID", currentPanda.storeID);
                     startActivity(extended);
                 }
             });

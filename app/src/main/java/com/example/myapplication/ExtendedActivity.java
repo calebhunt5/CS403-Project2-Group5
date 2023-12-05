@@ -24,6 +24,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.Manifest;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.location.LocationServices;
@@ -37,6 +44,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -45,6 +55,8 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
     TextView tvAddress, tvMilesAway;
     GoogleMap map;
     ProgressBar pbLoader;
+    PandaLocation pandaLocation;
+    int storeID;
 
     //recycler view and adapter for reviews
     RecyclerView rvReviews;
@@ -55,22 +67,12 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
     Geocoder geocoder;
     FusedLocationProviderClient flpCli;
     SupportMapFragment mapFragment;
-    public static final int REQUEST_LOCATION_PERMISSION = 1;
+    RequestQueue queue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_extended);
-
-        // TODO
-        // * Get location from data passed in from locations list
-        // * Get users current position
-        // * Method to calculate miles away
-
-        //get location permission granted
-        //in the full app, this will probably be handled by the launcher
-        //then i'll take this out
-        askLocationPermission();
 
         //get elements
         tvAddress = findViewById(R.id.tvAdddress);
@@ -86,53 +88,99 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
         geocoder = new Geocoder(this);
         flpCli = LocationServices.getFusedLocationProviderClient(this);
 
+        //set arraylist for reviews, adapter, and layout manager
         arrReviews = new ArrayList<>();
-        //dummy reviews for development
-        PandaReview review1 = new PandaReview("Daniel Jackson", 4, 2, false);
-        PandaReview review2 = new PandaReview("Samantha Carter", 3, 3, false);
-        arrReviews.add(review1);
-        arrReviews.add(review2);
-
-        //set adapter and layout manager
         adapter = new ReviewAdapter(this, arrReviews);
         rvReviews.setAdapter(adapter);
         LinearLayoutManager manager = new LinearLayoutManager(this);
         rvReviews.setLayoutManager(manager);
+
+        //get ready to make request
+        queue = Volley.newRequestQueue(this);
+        storeID = getIntent().getIntExtra("storeID", 0);
     }
 
-    public void askLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]
-                    {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
-        } else {
-            Log.d("LocationPermission", "Location: permissions granted");
-        }
+    public void getPandaStoreData(int storeID) {
+        //url to the server to get all panda express locations
+        String url = "https://pandaexpress-rating-backend-group5.onrender.com/pandas/"+storeID;
 
+        //request object - gets all the specific panda express location that was selected
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+        new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject responseObj) {
+                try {
+                    //make sure average rating actually exists
+                    double averageRating = 0.0;
+                    if (responseObj.has("averageRating")) {
+                        averageRating = responseObj.getDouble("averageRating");
+                    }
+
+                    //make object we can use
+                    pandaLocation = new PandaLocation(
+                            responseObj.getInt("store_id"),
+                            averageRating,
+                            responseObj.getDouble("latitude"),
+                            responseObj.getDouble("longitude"));
+
+                    //set up arraylist of reviews from json response
+                    JSONArray reviewsJsonArr = responseObj.getJSONArray("ratings");
+                    for (int i = 0; i < reviewsJsonArr.length(); i++) {
+                        JSONObject currentReviewObj = reviewsJsonArr.getJSONObject(i);
+                        PandaReview currentReview = new PandaReview(
+                                currentReviewObj.getString("actualUserName"),
+                                currentReviewObj.getString("description"),
+                                currentReviewObj.getInt("rating"),
+                                currentReviewObj.getInt("numLikes"),
+                                false
+                        );
+                        arrReviews.add(currentReview);
+                    }
+                    //tell adapter to update recycler view
+                    adapter.notifyDataSetChanged();
+
+                    //make marker and show
+                    LatLng currentPanda = new LatLng(pandaLocation.lat, pandaLocation.lng);
+                    Marker m = map.addMarker(new MarkerOptions().position(currentPanda));
+                    map.moveCamera(CameraUpdateFactory.newLatLng(currentPanda));
+
+                    //get address and update text for address
+                    Address address = null;
+                    try {
+                        address = geocoder.getFromLocation(
+                                pandaLocation.lat, pandaLocation.lng, 1).get(0);
+                        tvAddress.setText(address.getAddressLine(0));
+
+                        //get distance from current users location to
+                        //the selected panda express
+                        getMilesAway(currentPanda);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        },
+        new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("onErrorResponse", error.toString());
+                throw new RuntimeException(error);
+            }
+        });
+
+        queue.add(jsonObjectRequest);
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        //in the future this will get the location the user clicked on
-        //for now it is the svsu panda express
         map = googleMap;
 
-        //let latitude and longitude, make marker and show
-        LatLng svsuPanda = new LatLng(43.513905262373456, -83.96109288094384);
-        Marker m = map.addMarker(new MarkerOptions().position(svsuPanda));
-        map.moveCamera(CameraUpdateFactory.newLatLng(svsuPanda));
-
-        //get address and update text for address
-        Address address = null;
-        try {
-            address = geocoder.getFromLocation(svsuPanda.latitude, svsuPanda.longitude, 1).get(0);
-            tvAddress.setText(address.getAddressLine(0));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        //get store data for selected panda express
+        if (storeID != 0) {
+            getPandaStoreData(storeID);
         }
-
-        //get distance from current users location to
-        //the selected panda express
-        getMilesAway(svsuPanda);
     }
 
     public double calculateDistance(double lat1, double lng1, double lat2, double lng2) {

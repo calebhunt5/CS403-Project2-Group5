@@ -6,10 +6,12 @@
 package com.example.myapplication;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -23,13 +25,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     ArrayList<PandaReview> reviews;
     Context context;
 
-    /*
-        TODO
-        * LoadMore functionality like we had in D&D app
-     */
-
-    public ReviewAdapter(Context context, ArrayList<PandaReview> arrSpells) {
-        this.reviews = arrSpells;
+    public ReviewAdapter(Context context, ArrayList<PandaReview> pandaReviews) {
+        this.reviews = pandaReviews;
         this.context = context;
     }
 
@@ -45,37 +42,19 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         // get review
         PandaReview review = reviews.get(position);
 
+        Log.d("viewholder", review.toString());
+
         /*
-            TODO
-            * Set stars based on average review
             * On click for like & more like functionality
          */
 
         //set elements in layout
         holder.tvName.setText(review.userName);
+        holder.tvDesc.setText(review.description);
         holder.tvLikes.setText(review.likes+"");
+        holder.userRatingBar.setRating((float) review.rating);
 
-        //set stars image based on review stars
-        switch (review.rating) {
-            case 1:
-                holder.ivStars.setImageResource(R.drawable.one_star);
-                break;
-            case 2:
-                holder.ivStars.setImageResource(R.drawable.two_stars);
-                break;
-            case 3:
-                holder.ivStars.setImageResource(R.drawable.three_stars);
-                break;
-            case 4:
-                holder.ivStars.setImageResource(R.drawable.four_stars);
-                break;
-            case 5:
-                holder.ivStars.setImageResource(R.drawable.five_stars);
-                break;
-            default:
-                holder.ivStars.setImageResource(R.drawable.zero_stars);
-                break;
-        }
+
     }
 
     @Override
@@ -85,9 +64,9 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
     class ReviewViewHolder extends RecyclerView.ViewHolder {
         ConstraintLayout reviewLayout;
-        TextView tvName, tvLikes;
+        TextView tvName, tvLikes, tvDesc;
         ToggleButton tbLike;
-        ImageView ivStars;
+        RatingBar userRatingBar;
 
         public ReviewViewHolder(@NonNull View view) {
             super(view);
@@ -95,9 +74,10 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             //get elements from layout
             reviewLayout = view.findViewById(R.id.reviewLayout);
             tvName = view.findViewById(R.id.tvName);
+            tvDesc = view.findViewById(R.id.tvDesc);
             tvLikes = view.findViewById(R.id.tvLikes);
             tbLike = view.findViewById(R.id.tbLike);
-            ivStars = view.findViewById(R.id.ivStars);
+            userRatingBar = view.findViewById(R.id.userRatingBar);
         }
     }
 }
