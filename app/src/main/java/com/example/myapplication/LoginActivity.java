@@ -1,9 +1,11 @@
 // Hunter Wright - Login Page
 package com.example.myapplication;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,14 +18,22 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
 public class LoginActivity extends AppCompatActivity {
+    // SharedPreferences to store login fields
+    SharedPreferences loginSharedPrefs;
+
     TextInputLayout tilLoginEmail, tilLoginPassword;
     EditText etLoginEmail,  etLoginPassword;
     CheckBox chkRemember;
     Button btnLogin, btnRegister;
+
+    // ExecutorService to run threads
+    ExecutorService executorService;
 
     // Booleans to check if email and password are valid
     boolean blnEmail = false, blnPassword = false;
@@ -36,11 +46,20 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // Get login fields from SharedPreferences
+        loginSharedPrefs = getSharedPreferences("login_fields", MODE_PRIVATE);
+
+        // ExecutorService to run threads
+        executorService = Executors.newSingleThreadExecutor();
+
         // Get references to EditTexts, CheckBox, and Buttons
         getViews();
 
         // Create dummy users
         createUsers();
+
+        // Clear fields if checkbox is unchecked
+        rememeberFields();
 
         // Enables login button if both email and password are valid
         emailTextChanged();
@@ -182,8 +201,7 @@ public class LoginActivity extends AppCompatActivity {
 
     // Uses bcrypt to hash password and return hashed password
     public String hashPassword(String strPassword) {
-        String strBcryptPassword = BCrypt.withDefaults().hashToString(12, strPassword.toCharArray());
-        return strBcryptPassword;
+        return BCrypt.withDefaults().hashToString(12, strPassword.toCharArray());
     }
 
     // Uses bcrypt to verify password and return true if password matches hashed password
@@ -198,5 +216,66 @@ public class LoginActivity extends AppCompatActivity {
         lstUsers.add(new User("john@gmail.com", "John Madden", hashPassword("password1")));
         lstUsers.add(new User("gordon@gmail.com", "Gordon Freeman", hashPassword("password2")));
         lstUsers.add(new User("oniell@gmail.com", "Jack O'Neill", hashPassword("password3")));
+    }
+
+    public void rememeberFields() {
+        // If checkbox is unchecked then clear fields
+        if (!chkRemember.isChecked()) {
+            etLoginEmail.setText("");
+            etLoginPassword.setText("");
+        }
+    }
+
+    // Save login fields to SharedPreferences
+    public void saveLoginFields() {
+        // Get email and password from EditText
+        String strEmail = etLoginEmail.getText().toString();
+        String strPassword = etLoginPassword.getText().toString();
+
+        // Save email and password to SharedPreferences
+        SharedPreferences.Editor editor = loginSharedPrefs.edit();
+        editor.putString("email", strEmail);
+        editor.putString("password", strPassword);
+        editor.apply();
+    }
+
+    // Load login fields from SharedPreferences
+    public void loadLoginFields() {
+        // Check if loginSharedPrefs is null
+        if (loginSharedPrefs == null)
+            return;
+
+        // Get email and password from SharedPreferences
+        String strEmail = loginSharedPrefs.getString("email", "");
+        String strPassword = loginSharedPrefs.getString("password", "");
+
+        // Check if email and password are empty
+        if (strEmail.isEmpty() || strPassword.isEmpty())
+            return;
+
+        if (chkRemember.isChecked())
+            chkRemember.setChecked(true);
+
+        // Set email and password to EditText
+        etLoginEmail.setText(strEmail);
+        etLoginPassword.setText(strPassword);
+    }
+
+    // Saves login fields to SharedPreferences
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Save login fields to SharedPreferences
+        saveLoginFields();
+    }
+
+    // Loads login fields from SharedPreferences
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Load login fields from SharedPreferences
+        loadLoginFields();
     }
 }

@@ -4,6 +4,7 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,6 +16,8 @@ import android.widget.Toast;
 import com.google.android.material.textfield.TextInputLayout;
 
 public class RegisterActivity extends AppCompatActivity {
+    // SharedPreferences to store registration fields
+    SharedPreferences registerSharedPrefs;
     TextInputLayout tilRegisterName,
             tilRegisterEmail,
             tilRegisterPassword,
@@ -33,6 +36,9 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        // Get registration fields from SharedPreferences
+        registerSharedPrefs = getSharedPreferences("register_fields", MODE_PRIVATE);
 
         // Get references to EditTexts and Buttons
         getViews();
@@ -220,4 +226,49 @@ public class RegisterActivity extends AppCompatActivity {
         else
             btnRegister.setEnabled(false);
     }
+
+    // Save registration fields to SharedPreferences
+    public void saveRegisterFields() {
+        SharedPreferences.Editor editor = registerSharedPrefs.edit();
+        editor.putString("name", etRegisterName.getText().toString());
+        editor.putString("email", etRegisterEmail.getText().toString());
+        editor.putString("password", etRegisterPassword.getText().toString());
+        editor.apply();
+    }
+
+    // Load registration fields from SharedPreferences
+    public void loadRegisterFields() {
+        // Load registration fields from SharedPreferences
+        String strName = registerSharedPrefs.getString("name", "");
+        String strEmail = registerSharedPrefs.getString("email", "");
+        String strPassword = registerSharedPrefs.getString("password", "");
+
+        // If registration fields are empty, return
+        if (strName.isEmpty() || strEmail.isEmpty() || strPassword.isEmpty())
+            return;
+
+        // Set registration fields
+        etRegisterName.setText(strName);
+        etRegisterEmail.setText(strEmail);
+        etRegisterPassword.setText(strPassword);
+    }
+
+    // Saves register fields to SharedPreferences
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Save registration fields to SharedPreferences
+        saveRegisterFields();
+    }
+
+    // Loads register fields from SharedPreferences
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Load registration fields from SharedPreferences
+        loadRegisterFields();
+    }
+
 }
