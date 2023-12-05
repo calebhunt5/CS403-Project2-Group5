@@ -16,12 +16,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //these are my little buttons for temporary development tings
-        btnExtended = findViewById(R.id.btnExtended);
-        btnExtended.setOnClickListener(e -> {
-            Intent extended = new Intent(this, ExtendedActivity.class);
-            startActivity(extended);
-        });
-
         btnMaps = findViewById(R.id.btnMaps);
         btnMaps.setOnClickListener(e -> {
             Intent extended = new Intent(this, MapsActivity.class);

@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -13,10 +14,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -42,7 +48,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ActivityMapsBinding binding;
     Geocoder geocoder;
     RequestQueue queue;
-    ArrayList<LatLng> pandaLocations;
+    ArrayList<PandaLocation> pandaLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,13 +78,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         map = googleMap;
         map.setInfoWindowAdapter(new PandaInfoWindow());
 
-        Log.d("pandaExpress-map", "mapready");
-        //add a marker on the map for each panda express location
-        for (int i = 0; i < pandaLocations.size(); i++) {
-            LatLng currentPandaLocation = pandaLocations.get(0);
 
-            LatLng pandaLocation = new LatLng(currentPandaLocation.latitude, currentPandaLocation.longitude);
-            Marker m = map.addMarker(new MarkerOptions().position(pandaLocation));
+        //add a marker on the map for each panda express location
+        //and tie the object to that marker with the tag
+        for (int i = 0; i < pandaLocations.size(); i++) {
+            PandaLocation currentPanda = pandaLocations.get(i);
+
+            Marker m = map.addMarker(new MarkerOptions().position(
+                new LatLng(currentPanda.lat, currentPanda.lng)));
+            m.setTag(currentPanda);
         }
 
         //in the future, this will automatically go to whatever the default
@@ -90,40 +98,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void getPandaExpressLocations() {
-        Log.d("getPandaExpressLocations", "hit method");
-
+        //url to the server to get all panda express locations
         String url = "https://pandaexpress-rating-backend-group5.onrender.com/allPandas";
-        JsonObjectRequest r = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    Log.d("getPandaExpressLocations",response.toString());
 
+        //request object - gets all panda express locations in michigan
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
+        new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                for (int i = 0; i < response.length(); i++) {
+                    // creating a new json object and
+                    // getting each object from our json array.
                     try {
-                        //get all the locations
-                        JSONArray locations = response.getJSONArray("results");
-                        for (int i = 0; i < locations.length(); i++) {
-                            //get latitude and longitude
-                            double currentLat = locations.getJSONObject(i).getDouble("latitude");
-                            double currentLng = locations.getJSONObject(i).getDouble("latitude");
+                        // we are getting each json object.
+                        JSONObject responseObj = response.getJSONObject(i);
 
-                            //for each location, make a marker from the latitude and longitude
-                            LatLng pandaLocation = new LatLng(currentLat, currentLng);
-
-                            //add this marker to arraylist of markers
-                            pandaLocations.add(pandaLocation);
+                        //make sure average rating actually exists
+                        double averageRating = 0.0;
+                        if (responseObj.has("averageRating")) {
+                            averageRating = responseObj.getDouble("averageRating");
                         }
-                    } catch (JSONException e) {
+
+                        //make a pandaLocation object and store it in an arraylist
+                        PandaLocation currentPanda = new PandaLocation(
+                                responseObj.getInt("store_id"),
+                                averageRating,
+                                responseObj.getDouble("latitude"),
+                                responseObj.getDouble("longitude"));
+
+                        pandaLocations.add(currentPanda);
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
-                },
-                error -> Log.d("getPandaExpressLocations", error.toString()));
-        queue.add(r);
+                }
+            }
+        },
+        new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("onErrorResponse", error.toString());
+                throw new RuntimeException(error);
+            }
+        });
+
+        queue.add(jsonArrayRequest);
     };
-
-    public void markPandaExpressLocations() {
-        Log.d("markPandaExpressLocations", "hit method");
-
-
-    }
 
     //class for the custom map window
     class PandaInfoWindow implements GoogleMap.InfoWindowAdapter{
@@ -139,48 +158,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public View getInfoWindow(@NonNull Marker marker) {
             View v = LayoutInflater.from(MapsActivity.this).inflate(R.layout.layout_panda_window,null);
             TextView tvAddress = v.findViewById(R.id.tvAddress);
-            ImageView ivStars = v.findViewById(R.id.ivStars);
+            RatingBar ratingBar = v.findViewById(R.id.ratingBar);
 
-            //get address and update text for address
-            Address address = null;
+            //get current panda express
+            PandaLocation currentPanda = (PandaLocation) marker.getTag();
+
             try {
-                address = geocoder.getFromLocation(marker.getPosition().latitude, marker.getPosition().longitude, 1).get(0);
+                //set address in info window
+                Address address = null;
+                address = geocoder.getFromLocation(marker.getPosition().latitude,
+                        marker.getPosition().longitude, 1).get(0);
                 tvAddress.setText(address.getAddressLine(0));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            //set stars image based on average
-            //no data right now however
-            int average = 0;
-            switch (average) {
-                case 1:
-                    ivStars.setImageResource(R.drawable.one_star);
-                    break;
-                case 2:
-                    ivStars.setImageResource(R.drawable.two_stars);
-                    break;
-                case 3:
-                    ivStars.setImageResource(R.drawable.three_stars);
-                    break;
-                case 4:
-                    ivStars.setImageResource(R.drawable.four_stars);
-                    break;
-                case 5:
-                    ivStars.setImageResource(R.drawable.five_stars);
-                    break;
-                default:
-                    ivStars.setImageResource(R.drawable.zero_stars);
-                    break;
-            }
+            //set rating bar to value of average review
+            ratingBar.setRating((float) currentPanda.averageRating);
 
+            //onclick listener that takes the user to the extended view when clicked
+            //passes in the store number
+            map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                @Override
+                public void onInfoWindowClick(@NonNull Marker marker) {
+                    Intent extended = new Intent(v.getContext(), ExtendedActivity.class);
+                    //extended.putExtra("storeID", currentPanda.storeID);
+                    startActivity(extended);
+                }
+            });
 
-            /* TODO
-                * Make info window use some sort of PandaLocation class based on database
-                * Make it show info window
-                * Make info window go to extended view when clicked
-                * Make info window show appropriate image based on average stars
-             */
             return v;
         }
     }
