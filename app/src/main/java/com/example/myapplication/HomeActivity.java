@@ -9,57 +9,65 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 
 import com.google.android.material.navigation.NavigationView;
 
 public class HomeActivity extends AppCompatActivity {
     // Navigation sidebar
-    AppBarConfiguration mAppBarConfiguration;
     DrawerLayout drawer;
     NavigationView navigationView;
     Toolbar toolbar;
 
-    // Search bar
-    SearchView svAddressSearch;
+    SearchView svAddressSearch; // Search bar
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        svAddressSearch = findViewById(R.id.svAddressSearch);
+        getViews(); // Bind views
 
-//        drawer = findViewById(R.id.drawer_layout);
-//        navigationView = findViewById(R.id.nav_view);
-
-//        toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-//        mAppBarConfiguration = new AppBarConfiguration.Builder(
-//                R.id.nav_home, R.id.nav_locations, R.id.nav_map, R.id.nav_signout,R.id.nav_settings)
-//                .setOpenableLayout(drawer)
-//                .build();
-//
-//        // Set up navigation sidebar
-//        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_navigation);
-//        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        sideNavigation(); // Navigation sidebar item click listener
     }
-//
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.navigation, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onSupportNavigateUp() {
-//        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_navigation);
-//        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-//                || super.onSupportNavigateUp();
-//    }
+
+    // Navigation sidebar item click listener
+    public void sideNavigation() {
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId(); // Get the id of the clicked item
+
+            // Start the corresponding activity
+            if (itemId == R.id.nav_home) {
+                // Do nothing or handle as needed
+            } else if (itemId == R.id.nav_signout) {
+                // Handle sign out
+                startActivity(new Intent(HomeActivity.this, LoginActivity.class));
+                finish(); // Close the current activity
+            }
+
+            // Close the navigation drawer
+            drawer.closeDrawers();
+            return true;
+        });
+    }
+
+    public void getViews() {
+        svAddressSearch = findViewById(R.id.svAddressSearch); // Search bar
+
+        // Navigation sidebar
+        drawer = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar); // Set the toolbar as the action bar
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        // Handle the Up button to open the navigation drawer
+        drawer.openDrawer(navigationView);
+        return true;
+    }
 }
