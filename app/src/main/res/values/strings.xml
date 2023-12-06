@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Panda Portions</string>
     <string name="title_activity_login">LoginActivity</string>
-    <string name="prompt_name">Name</string>
+    <string name="prompt_name">Username</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="confirm_password">Confirm Password</string>
