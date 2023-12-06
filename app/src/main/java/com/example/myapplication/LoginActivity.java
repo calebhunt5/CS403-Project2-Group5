@@ -1,7 +1,6 @@
 // Hunter Wright - Login Page
 package com.example.myapplication;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -9,13 +8,24 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -24,22 +34,22 @@ import java.util.concurrent.Executors;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
 public class LoginActivity extends AppCompatActivity {
-    // SharedPreferences to store login fields
-    SharedPreferences loginSharedPrefs;
+    final String strLoginURL = "https://pandaexpress-rating-backend-group5.onrender.com/users/login"; // URL to login API
 
-    TextInputLayout tilLoginEmail, tilLoginPassword;
-    EditText etLoginEmail,  etLoginPassword;
-    CheckBox chkRemember;
+    SharedPreferences loginSharedPrefs; // SharedPreferences to store login fields
+
+    // References to EditTexts, CheckBox, and Buttons
+    TextInputLayout tilLoginUsername, tilLoginPassword;
+    EditText etLoginUsername,  etLoginPassword;
     Button btnLogin, btnRegister;
+    ProgressBar pbLogin;
 
-    // ExecutorService to run threads
-    ExecutorService executorService;
+    ExecutorService executorService; // ExecutorService to run threads
+    CookieManager cookieManager; // CookieManager to store cookies
+    RequestQueue queue; // Asynchronous API calling
 
     // Booleans to check if email and password are valid
-    boolean blnEmail = false, blnPassword = false;
-
-    // Store list of dummy users of class User
-    List<User> lstUsers;
+    boolean blnUsername = false, blnPassword = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,34 +59,29 @@ public class LoginActivity extends AppCompatActivity {
         // Get login fields from SharedPreferences
         loginSharedPrefs = getSharedPreferences("login_fields", MODE_PRIVATE);
 
+        // Initializes volley queue
+        queue = Volley.newRequestQueue(this);
+
         // ExecutorService to run threads
         executorService = Executors.newSingleThreadExecutor();
+
+        // CookieManager to store cookies
+        cookieManager = new CookieManager();
+        CookieHandler.setDefault(cookieManager);
 
         // Get references to EditTexts, CheckBox, and Buttons
         getViews();
 
-        // Create dummy users
-        createUsers();
-
-        // Clear fields if checkbox is unchecked
-        rememeberFields();
+        // Check location permissions
+        checkLocationPermissions();
 
         // Enables login button if both email and password are valid
-        emailTextChanged();
+        nameTextChanged();
         passwordChanged();
-
-        // Stay logged in
-        // TODO - Save user instance
-        chkRemember.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked)
-                Toast.makeText(this, "Remember me :)", Toast.LENGTH_SHORT).show();
-            else
-                Toast.makeText(this, "Don't remember me :(", Toast.LENGTH_SHORT).show();
-        });
 
         // Checks if email and password match a user
         btnLogin.setOnClickListener(v -> {
-            login();
+            login(getUser());
         });
 
         // Go to RegisterActivity
@@ -86,27 +91,36 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    // Check location permissions
+    public void checkLocationPermissions() {
+        // Check if location permissions are granted
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != getPackageManager().PERMISSION_GRANTED) {
+            // Request location permissions
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+    }
+
     // Get references to EditTexts, CheckBox, and Buttons
     public void getViews() {
-        tilLoginEmail = findViewById(R.id.tilLoginEmail);
+        tilLoginUsername = findViewById(R.id.tilLoginUsername);
         tilLoginPassword = findViewById(R.id.tilLoginPassword);
 
         // Remove error icons for password
         tilLoginPassword.setErrorIconDrawable(0);
 
-        etLoginEmail = findViewById(R.id.etLoginEmail);
+        etLoginUsername = findViewById(R.id.etLoginUsername);
         etLoginPassword = findViewById(R.id.etLoginPassword);
-
-        chkRemember = findViewById(R.id.chkRemember);
 
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
+
+        pbLogin = findViewById(R.id.pbLogin);
     }
 
-    // Email validation
-    public void emailTextChanged() {
+    // Username validation
+    public void nameTextChanged() {
         // addTextChangedListener that is called when the text is changed
-        etLoginEmail.addTextChangedListener(new TextWatcher() {
+        etLoginUsername.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -115,24 +129,22 @@ public class LoginActivity extends AppCompatActivity {
 
             }
 
-            // Check if email is valid after text is changed
+            // Check if username is valid after text is changed
             @Override
             public void afterTextChanged(Editable s) {
-                // Check if email is valid
-                if (s.toString().contains("@") && s.toString().contains(".") && !s.toString().isEmpty() && !s.toString().contains(" ")) {
-                    blnEmail = true;
-                    tilLoginEmail.setError(null);
+                // Check if username is valid
+                if (s.toString().length() >= 1 && !s.toString().isEmpty() && !s.toString().contains(" ")) {
+                    tilLoginUsername.setErrorEnabled(false);
+                    blnUsername = true;
                 }
                 else {
-                    blnEmail = false;
-                    tilLoginEmail.setError("Email is invalid");
+                    tilLoginUsername.setError("Username cannot be empty or contain spaces");
+                    tilLoginUsername.setErrorEnabled(true);
+                    blnUsername = false;
                 }
 
                 // Enable login button if both email and password are valid
-                if (blnEmail && blnPassword)
-                    btnLogin.setEnabled(true);
-                else
-                    btnLogin.setEnabled(false);
+                loginButtonEnabled();
             }
         });
     }
@@ -151,85 +163,99 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 // Check if password is valid
-                if (s.toString().length() >= 1 && !s.toString().isEmpty() && !s.toString().contains(" "))
+                if (s.toString().length() >= 1 && !s.toString().isEmpty() && !s.toString().contains(" ")) {
+                    tilLoginPassword.setErrorEnabled(false);
                     blnPassword = true;
-                else
+                }
+                else {
+                    tilLoginPassword.setError("Password cannot be empty or contain spaces");
+                    tilLoginPassword.setErrorEnabled(true);
                     blnPassword = false;
+                }
 
                 // Enable login button if both email and password are valid
-                if (blnEmail && blnPassword)
-                    btnLogin.setEnabled(true);
-                else
-                    btnLogin.setEnabled(false);
+                loginButtonEnabled();
             }
         });
     }
 
-    // Check if email and password match a user
-    public void login() {
-        // Get email and password from EditText
-        String strEmail = etLoginEmail.getText().toString();
-        String strPassword = etLoginPassword.getText().toString();
+    public void loginButtonEnabled() {
+        // Enable login button if both email and password are valid
+        if (blnUsername && blnPassword)
+            btnLogin.setEnabled(true);
+        else
+            btnLogin.setEnabled(false);
+    }
 
-        boolean blnPasswordMatch;   // Check if password matches hashed password
-        boolean blnNotFound = false;// Check if email and password match a user
+    // Calls login URL and checks if email and password match a user
+    public void login(User user) {
+        // Create JSON object
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("username", user.getStrUsername());
+            jsonBody.put("password", user.getStrPassword());    // Password is hashed in backend
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-        // Check if email and password are valid
-        if (blnEmail && blnPassword) {
-            // Check if email and password match a user
-            for (User user : lstUsers) {
-                // Check if password matches hashed password
-                blnPasswordMatch = verifyPassword(strPassword, user.getStrPassword());
+        pbLogin.setVisibility(ProgressBar.VISIBLE);
 
-                if (user.getStrEmail().equals(strEmail) && blnPasswordMatch) {
-                    blnNotFound = false;
+        // Create POST request
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, strLoginURL, jsonBody, response -> {
+            try {
+                // Get response from API
+                String strResponse = response.getString("message");
 
-                    // Login successful
-                    Intent i = new Intent(LoginActivity.this, LaunchActivity.class);
+                // Display message
+                Toast.makeText(this, strResponse, Toast.LENGTH_SHORT).show();
+
+                // Check if response is success
+                if (strResponse.contains("Successfully logged in")) {
+                    pbLogin.setVisibility(ProgressBar.INVISIBLE); // Hide progress bar
+
+                    // Go to MainActivity
+                    Intent i = new Intent(LoginActivity.this, HomeActivity.class);
                     startActivity(i);
-                    finish();
-                    break;
                 }
-                else
-                    blnNotFound = true;
+
+            } catch (JSONException e) {
+                pbLogin.setVisibility(ProgressBar.INVISIBLE);
+                e.printStackTrace();
             }
-        }
+        }, error -> {
+            // Display error message
+            Toast.makeText(this, "Error occurred. Please try again.", Toast.LENGTH_SHORT).show();
 
-        if (blnNotFound)
-            Toast.makeText(this, "Email or password is incorrect", Toast.LENGTH_LONG).show();
+            pbLogin.setVisibility(ProgressBar.INVISIBLE);
+            Log.e("Volley", error.toString());
+        });
+
+        // Add request to queue
+        queue.add(jsonObjectRequest);
+
+        pbLogin.setVisibility(ProgressBar.INVISIBLE);
     }
 
-    // Uses bcrypt to hash password and return hashed password
-    public String hashPassword(String strPassword) {
-        return BCrypt.withDefaults().hashToString(12, strPassword.toCharArray());
+    // Return a user instance
+    public User getUser() {
+        return new User(etLoginUsername.getText().toString(), etLoginPassword.getText().toString());
     }
 
-    // Uses bcrypt to verify password and return true if password matches hashed password
-    public boolean verifyPassword(String strPassword, String strBcryptPassword) {
-        BCrypt.Result result = BCrypt.verifyer().verify(strPassword.toCharArray(), strBcryptPassword);
-        return result.verified;
-    }
-
-    // Create dummy users
-    public void createUsers() {
-        lstUsers = new ArrayList<>();
-        lstUsers.add(new User("john@gmail.com", "John Madden", hashPassword("password1")));
-        lstUsers.add(new User("gordon@gmail.com", "Gordon Freeman", hashPassword("password2")));
-        lstUsers.add(new User("oniell@gmail.com", "Jack O'Neill", hashPassword("password3")));
-    }
-
-    public void rememeberFields() {
-        // If checkbox is unchecked then clear fields
-        if (!chkRemember.isChecked()) {
-            etLoginEmail.setText("");
-            etLoginPassword.setText("");
-        }
-    }
+//    // Uses bcrypt to hash password and return hashed password
+//    public String hashPassword(String strPassword) {
+//        return BCrypt.withDefaults().hashToString(12, strPassword.toCharArray());
+//    }
+//
+//    // Uses bcrypt to verify password and return true if password matches hashed password
+//    public boolean verifyPassword(String strPassword, String strBcryptPassword) {
+//        BCrypt.Result result = BCrypt.verifyer().verify(strPassword.toCharArray(), strBcryptPassword);
+//        return result.verified;
+//    }
 
     // Save login fields to SharedPreferences
     public void saveLoginFields() {
         // Get email and password from EditText
-        String strEmail = etLoginEmail.getText().toString();
+        String strEmail = etLoginUsername.getText().toString();
         String strPassword = etLoginPassword.getText().toString();
 
         // Save email and password to SharedPreferences
@@ -253,11 +279,8 @@ public class LoginActivity extends AppCompatActivity {
         if (strEmail.isEmpty() || strPassword.isEmpty())
             return;
 
-        if (chkRemember.isChecked())
-            chkRemember.setChecked(true);
-
         // Set email and password to EditText
-        etLoginEmail.setText(strEmail);
+        etLoginUsername.setText(strEmail);
         etLoginPassword.setText(strPassword);
     }
 

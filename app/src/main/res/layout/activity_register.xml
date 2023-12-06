@@ -46,7 +46,7 @@
         app:layout_constraintTop_toBottomOf="@+id/ivBackground" />
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilRegisterName"
+        android:id="@+id/tilRegisterUsername"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -57,7 +57,7 @@
         app:layout_constraintTop_toBottomOf="@+id/txtHeader">
 
         <EditText
-            android:id="@+id/etRegisterName"
+            android:id="@+id/etRegisterUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/prompt_name"
@@ -68,33 +68,14 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilRegisterEmail"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toEndOf="@+id/tilRegisterName"
-        app:layout_constraintStart_toStartOf="@+id/tilRegisterName"
-        app:layout_constraintTop_toBottomOf="@+id/tilRegisterName">
-
-        <EditText
-            android:id="@+id/etRegisterEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autofillHints="@string/prompt_email"
-            android:hint="@string/prompt_email"
-            android:inputType="textEmailAddress"
-            android:selectAllOnFocus="true" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilRegisterPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         app:endIconMode="password_toggle"
-        app:layout_constraintEnd_toEndOf="@+id/tilRegisterEmail"
-        app:layout_constraintStart_toStartOf="@+id/tilRegisterEmail"
-        app:layout_constraintTop_toBottomOf="@+id/tilRegisterEmail">
+        app:layout_constraintEnd_toEndOf="@+id/tilRegisterUsername"
+        app:layout_constraintStart_toStartOf="@+id/tilRegisterUsername"
+        app:layout_constraintTop_toBottomOf="@+id/tilRegisterUsername">
 
         <EditText
             android:id="@+id/etLoginPassword"
@@ -146,5 +127,16 @@
         app:layout_constraintEnd_toEndOf="@+id/tilConfirmPassword"
         app:layout_constraintStart_toStartOf="@+id/tilConfirmPassword"
         app:layout_constraintTop_toBottomOf="@+id/tilConfirmPassword" />
+
+    <ProgressBar
+        android:id="@+id/pbRegister"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnRegister" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

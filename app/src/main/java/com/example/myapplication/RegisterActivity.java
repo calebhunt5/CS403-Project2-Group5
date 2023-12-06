@@ -11,26 +11,42 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class RegisterActivity extends AppCompatActivity {
+    final String strRegisterURL = "https://pandaexpress-rating-backend-group5.onrender.com/users/register";
+
     // SharedPreferences to store registration fields
     SharedPreferences registerSharedPrefs;
-    TextInputLayout tilRegisterName,
-            tilRegisterEmail,
+
+    // References to EditTexts and Buttons
+    TextInputLayout tilRegisterUserName,
             tilRegisterPassword,
             tilConfirmPassword;
-    EditText etRegisterName,
-            etRegisterEmail,
+    EditText etRegisterUsername,
             etRegisterPassword,
             etConfirmPassword;
     Button btnRegister;
-    boolean blnName = false,
-            blnEmail = false,
+    ProgressBar pbRegister;
+
+    RequestQueue queue; // Asynchronous API calling
+
+    // Boolean values to check if fields are valid
+    boolean blnUsername = false,
             blnPassword = false,
             blnConfirmPassword = false;
+
+    boolean blnSuccess = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,25 +56,69 @@ public class RegisterActivity extends AppCompatActivity {
         // Get registration fields from SharedPreferences
         registerSharedPrefs = getSharedPreferences("register_fields", MODE_PRIVATE);
 
+        // Initializes volley queue
+        queue = Volley.newRequestQueue(this);
+
         // Get references to EditTexts and Buttons
         getViews();
 
         // Enables register button if all fields are valid
         nameTextChanged();
-        emailTextChanged();
         passwordTextChanged();
         confirmPasswordTextChanged();
 
         // Return to login screen
         btnRegister.setOnClickListener(v -> {
-            finish();
+            registerUser(getUser());
         });
+    }
+
+    // Registers user with username and password in body
+    public void registerUser(User user) {
+        // Create JSON object
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("username", user.getStrUsername());
+            jsonBody.put("password", user.getStrPassword());    // Password is hashed in backend
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        pbRegister.setVisibility(ProgressBar.VISIBLE);
+        // Create request
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, strRegisterURL, jsonBody, response -> {
+            try {
+                // If registration is successful, return to login screen
+                if (response.getString("username").equals(user.getStrUsername())) {
+                    Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+                    blnSuccess = true;
+                }
+                // If registration is unsuccessful, display error message
+                else {
+                    Toast.makeText(this, response.getString("message"), Toast.LENGTH_SHORT).show();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }, error -> {
+            Log.e("Volley", error.toString() + " :(");
+        });
+
+        // Add request to queue
+        queue.add(jsonObjectRequest);
+
+        pbRegister.setVisibility(ProgressBar.INVISIBLE);
+        finish();
+    }
+
+    // Returns user with username and password
+    public User getUser() {
+        return new User(etRegisterUsername.getText().toString(), etRegisterPassword.getText().toString());
     }
 
     // Get references to EditTexts and Buttons
     public void getViews() {
-        tilRegisterName = findViewById(R.id.tilRegisterName);
-        tilRegisterEmail = findViewById(R.id.tilRegisterEmail);
+        tilRegisterUserName = findViewById(R.id.tilRegisterUsername);
         tilRegisterPassword = findViewById(R.id.tilRegisterPassword);
         tilConfirmPassword = findViewById(R.id.tilConfirmPassword);
 
@@ -66,18 +126,18 @@ public class RegisterActivity extends AppCompatActivity {
         tilRegisterPassword.setErrorIconDrawable(0);
         tilConfirmPassword.setErrorIconDrawable(0);
 
-        etRegisterName = findViewById(R.id.etRegisterName);
-        etRegisterEmail = findViewById(R.id.etRegisterEmail);
+        etRegisterUsername = findViewById(R.id.etRegisterUsername);
         etRegisterPassword = findViewById(R.id.etLoginPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
 
         btnRegister = findViewById(R.id.btnRegister);
+        pbRegister = findViewById(R.id.pbRegister);
     }
 
     // -- EditTexts listeners --
     // Name validation
     public void nameTextChanged() {
-        etRegisterName.addTextChangedListener(new TextWatcher() {
+        etRegisterUsername.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -87,52 +147,13 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (!s.toString().isEmpty()) {
-                    blnName = true;
-                    tilRegisterName.setError(null);
-                    tilRegisterName.setErrorEnabled(false);
+                    blnUsername = true;
+                    tilRegisterUserName.setErrorEnabled(false);
                 }
                 else {
-                    blnName = false;
-                    tilRegisterName.setErrorEnabled(true);
-                    tilRegisterName.setError("Name cannot be empty");
-                }
-
-                // Enable register button if all fields are valid
-                registerButtonEnabled();
-            }
-        });
-    }
-
-    // Email validation
-    public void emailTextChanged() {
-        etRegisterEmail.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (s.toString().contains("@") && s.toString().contains(".") && !s.toString().isEmpty() && !s.toString().contains(" ")) {
-                    blnEmail = true;
-                    tilRegisterEmail.setError(null);
-                    tilRegisterEmail.setErrorEnabled(false);
-                }
-                else if (s.toString().isEmpty()) {
-                    blnEmail = false;
-                    tilRegisterEmail.setErrorEnabled(true);
-                    tilRegisterEmail.setError("Email cannot be empty");
-                }
-                else if (s.toString().contains(" ")) {
-                    blnEmail = false;
-                    tilRegisterEmail.setErrorEnabled(true);
-                    tilRegisterEmail.setError("Email cannot contain spaces");
-                }
-                else if (!s.toString().contains("@") || !s.toString().contains(".")) {
-                    blnEmail = false;
-                    tilRegisterEmail.setErrorEnabled(true);
-                    tilRegisterEmail.setError("Email is invalid");
+                    blnUsername = false;
+                    tilRegisterUserName.setErrorEnabled(true);
+                    tilRegisterUserName.setError("Username cannot be empty");
                 }
 
                 // Enable register button if all fields are valid
@@ -158,7 +179,6 @@ public class RegisterActivity extends AppCompatActivity {
                     tilRegisterPassword.setError("Password cannot contain spaces");
                 }
                 else {
-                    tilRegisterPassword.setError(null);
                     tilRegisterPassword.setErrorEnabled(false);
                 }
             }
@@ -166,16 +186,18 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 // Password validation
-                if (s.toString().length() >= 8 && !s.toString().contains(" ")) {
+                if (s.toString().length() >= 8 && !s.toString().contains(" ") && !s.toString().isEmpty()) {
                     blnPassword = true;
+                    tilRegisterPassword.setErrorEnabled(false);
                 } else {
                     blnPassword = false;
+                    tilRegisterPassword.setErrorEnabled(true);
+                    tilRegisterPassword.setError("Password must be at least 8 characters");
                 }
 
                 // Password matching confirmation
                 if (s.toString().equals(etConfirmPassword.getText().toString())) {
                     blnConfirmPassword = true;
-                    tilConfirmPassword.setError(null);
                     tilRegisterPassword.setErrorEnabled(false);
                 } else {
                     blnConfirmPassword = false;
@@ -221,7 +243,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     // Enables register button if all fields are valid
     public void registerButtonEnabled() {
-        if (blnName && blnEmail && blnPassword && blnConfirmPassword)
+        if (blnUsername && blnPassword && blnConfirmPassword)
             btnRegister.setEnabled(true);
         else
             btnRegister.setEnabled(false);
@@ -230,8 +252,7 @@ public class RegisterActivity extends AppCompatActivity {
     // Save registration fields to SharedPreferences
     public void saveRegisterFields() {
         SharedPreferences.Editor editor = registerSharedPrefs.edit();
-        editor.putString("name", etRegisterName.getText().toString());
-        editor.putString("email", etRegisterEmail.getText().toString());
+        editor.putString("username", etRegisterUsername.getText().toString());
         editor.putString("password", etRegisterPassword.getText().toString());
         editor.apply();
     }
@@ -239,17 +260,15 @@ public class RegisterActivity extends AppCompatActivity {
     // Load registration fields from SharedPreferences
     public void loadRegisterFields() {
         // Load registration fields from SharedPreferences
-        String strName = registerSharedPrefs.getString("name", "");
-        String strEmail = registerSharedPrefs.getString("email", "");
+        String strUsername = registerSharedPrefs.getString("username", "");
         String strPassword = registerSharedPrefs.getString("password", "");
 
         // If registration fields are empty, return
-        if (strName.isEmpty() || strEmail.isEmpty() || strPassword.isEmpty())
+        if (strUsername.isEmpty() || strPassword.isEmpty())
             return;
 
         // Set registration fields
-        etRegisterName.setText(strName);
-        etRegisterEmail.setText(strEmail);
+        etRegisterUsername.setText(strUsername);
         etRegisterPassword.setText(strPassword);
     }
 

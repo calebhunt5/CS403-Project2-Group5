@@ -1,28 +1,18 @@
 package com.example.myapplication;
 
 public class User {
-    private String strEmail, strName, strPassword;
+    private String strUsername, strPassword;
 
-    public User(String strEmail, String strName, String strPassword) {
-        this.strEmail = strEmail;
-        this.strName = strName;
+    public User(String strUsername, String strPassword) {
+        this.strUsername = strUsername;
         this.strPassword = strPassword;
     }
-
-    public String getStrEmail() {
-        return strEmail;
+    public String getStrUsername() {
+        return strUsername;
     }
 
-    public void setStrEmail(String strEmail) {
-        this.strEmail = strEmail;
-    }
-
-    public String getStrName() {
-        return strName;
-    }
-
-    public void setStrName(String strName) {
-        this.strName = strName;
+    public void setStrUsername(String strUsername) {
+        this.strUsername = strUsername;
     }
 
     public String getStrPassword() {
