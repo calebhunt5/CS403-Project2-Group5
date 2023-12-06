@@ -46,8 +46,6 @@ public class RegisterActivity extends AppCompatActivity {
             blnPassword = false,
             blnConfirmPassword = false;
 
-    boolean blnSuccess = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,29 +89,29 @@ public class RegisterActivity extends AppCompatActivity {
                 // If registration is successful, return to login screen
                 if (response.getString("username").equals(user.getStrUsername())) {
                     Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                    blnSuccess = true;
+                    pbRegister.setVisibility(ProgressBar.INVISIBLE);
                 }
                 // If registration is unsuccessful, display error message
                 else {
                     Toast.makeText(this, response.getString("message"), Toast.LENGTH_SHORT).show();
                 }
             } catch (JSONException e) {
+                pbRegister.setVisibility(ProgressBar.INVISIBLE);
                 e.printStackTrace();
             }
         }, error -> {
+            pbRegister.setVisibility(ProgressBar.INVISIBLE);
             Log.e("Volley", error.toString() + " :(");
         });
 
         // Add request to queue
         queue.add(jsonObjectRequest);
-
-        pbRegister.setVisibility(ProgressBar.INVISIBLE);
         finish();
     }
 
     // Returns user with username and password
     public User getUser() {
-        return new User(etRegisterUsername.getText().toString(), etRegisterPassword.getText().toString());
+        return new User(etRegisterUsername.getText().toString().toLowerCase(), etRegisterPassword.getText().toString());
     }
 
     // Get references to EditTexts and Buttons

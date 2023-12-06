@@ -10,7 +10,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -232,13 +231,11 @@ public class LoginActivity extends AppCompatActivity {
 
         // Add request to queue
         queue.add(jsonObjectRequest);
-
-        pbLogin.setVisibility(ProgressBar.INVISIBLE);
     }
 
     // Return a user instance
     public User getUser() {
-        return new User(etLoginUsername.getText().toString(), etLoginPassword.getText().toString());
+        return new User(etLoginUsername.getText().toString().toLowerCase(), etLoginPassword.getText().toString());
     }
 
 //    // Uses bcrypt to hash password and return hashed password
