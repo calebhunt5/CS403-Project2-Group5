@@ -10,6 +10,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -35,12 +36,14 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 public class LoginActivity extends AppCompatActivity {
     final String strLoginURL = "https://pandaexpress-rating-backend-group5.onrender.com/users/login"; // URL to login API
 
-    SharedPreferences loginSharedPrefs; // SharedPreferences to store login fields
+    SharedPreferences loginSharedPrefs; // SharedPreferences to store login fields and auth cookies
+    SessionManager sessionManager; // SessionManager to store session
 
     // References to EditTexts, CheckBox, and Buttons
     TextInputLayout tilLoginUsername, tilLoginPassword;
     EditText etLoginUsername,  etLoginPassword;
     Button btnLogin, btnRegister;
+    CheckBox cbRemember;
     ProgressBar pbLogin;
 
     ExecutorService executorService; // ExecutorService to run threads
@@ -58,8 +61,10 @@ public class LoginActivity extends AppCompatActivity {
         // Get login fields from SharedPreferences
         loginSharedPrefs = getSharedPreferences("login_fields", MODE_PRIVATE);
 
+        sessionManager = new SessionManager(this); // Initializes session manager
+
         // Initializes volley queue
-        queue = Volley.newRequestQueue(this);
+        queue = Volley.newRequestQueue(this.getApplicationContext());
 
         // ExecutorService to run threads
         executorService = Executors.newSingleThreadExecutor();
@@ -67,6 +72,13 @@ public class LoginActivity extends AppCompatActivity {
         // CookieManager to store cookies
         cookieManager = new CookieManager();
         CookieHandler.setDefault(cookieManager);
+
+        // Check if there is a saved session
+        if (sessionManager.hasSavedSessionInformation()) {
+            // If yes, redirect to the home screen
+            startActivity(new Intent(this, HomeActivity.class));
+            finish(); // Close the current activity
+        }
 
         // Get references to EditTexts, CheckBox, and Buttons
         getViews();
@@ -93,10 +105,10 @@ public class LoginActivity extends AppCompatActivity {
     // Check location permissions
     public void checkLocationPermissions() {
         // Check if location permissions are granted
-        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != getPackageManager().PERMISSION_GRANTED) {
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != getPackageManager().PERMISSION_GRANTED)
             // Request location permissions
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        }
+
     }
 
     // Get references to EditTexts, CheckBox, and Buttons
@@ -112,6 +124,8 @@ public class LoginActivity extends AppCompatActivity {
 
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
+
+        cbRemember = findViewById(R.id.cbRemember);
 
         pbLogin = findViewById(R.id.pbLogin);
     }
@@ -211,6 +225,11 @@ public class LoginActivity extends AppCompatActivity {
                 // Check if response is success
                 if (strResponse.contains("Successfully logged in")) {
                     pbLogin.setVisibility(ProgressBar.INVISIBLE); // Hide progress bar
+
+                    // Check if Remember Me is selected
+                    if (cbRemember.isChecked())
+                        // Save session information
+                        sessionManager.saveSessionInformation(cookieManager.getCookieStore().getCookies().get(0).toString());
 
                     // Go to MainActivity
                     Intent i = new Intent(LoginActivity.this, HomeActivity.class);
