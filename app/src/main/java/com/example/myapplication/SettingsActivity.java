@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -65,5 +66,43 @@ public class SettingsActivity extends AppCompatActivity {
             swtNotifications.setChecked(false);
             swtNotifications.setText("Off");
         }
+
+        // Toggle listeners
+        swtDarkMode.setOnCheckedChangeListener((compoundButton,isChecked) ->{
+            if (swtDarkMode.isChecked()){
+                editor.putBoolean("settingsDarkMode", true);
+                editor.apply();
+                // Change to dark mode
+                swtDarkMode.setText("On");
+
+            }
+            else{
+                editor.putBoolean("settingsDarkMode", false);
+                editor.apply();
+                // Change to light mode
+                swtDarkMode.setText("Off");
+
+            }
+            Toast.makeText(this, "Changes will take effect on the next screen.", Toast.LENGTH_SHORT).show();
+            // TODO - Need to figure out how we're implementing dark mode
+        });
+
+        swtNotifications.setOnCheckedChangeListener((compoundButton,isChecked) ->{
+            if (swtNotifications.isChecked()){
+                editor.putBoolean("settingsNotifications", true);
+                editor.apply();
+                // Change notifications on
+                swtNotifications.setText("On");
+
+            }
+            else{
+                editor.putBoolean("settingsNotifications", false);
+                editor.apply();
+                // Change notifications off
+                swtNotifications.setText("Off");
+
+            }
+
+        });
     }
 }
