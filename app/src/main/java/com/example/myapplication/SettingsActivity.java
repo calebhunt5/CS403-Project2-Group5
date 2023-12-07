@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -75,6 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
                 // Change to dark mode
                 swtDarkMode.setText("On");
 
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             }
             else{
                 editor.putBoolean("settingsDarkMode", false);
@@ -82,9 +84,12 @@ public class SettingsActivity extends AppCompatActivity {
                 // Change to light mode
                 swtDarkMode.setText("Off");
 
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
-            Toast.makeText(this, "Changes will take effect on the next screen.", Toast.LENGTH_SHORT).show();
-            // TODO - Need to figure out how we're implementing dark mode
+            // Toast.makeText(this, "Changes will take effect on the next screen.", Toast.LENGTH_SHORT).show();
+            // TODONE - Need to figure out how we're implementing dark mode
+            // TODO - Need to test if this method of dark mode control is working as intended,
+            //      currently lacking navigation to settings page
         });
 
         swtNotifications.setOnCheckedChangeListener((compoundButton,isChecked) ->{
