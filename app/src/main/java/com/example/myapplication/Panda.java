@@ -2,13 +2,18 @@ package com.example.myapplication;
 
 public class Panda {
 
+    String id;
     String Address;
-    int lat;
-    int lon;
+    double lat;
+    double lon;
     double distance;
-    int rating;
+    double rating;
 
-    public Panda(String address, int lat, int lon, double distance, int rating) {
+    public Panda() {}
+
+
+
+    public Panda(String address, double lat, double lon, double distance, double rating) {
         Address = address;
         this.lat = lat;
         this.lon = lon;
@@ -16,7 +21,20 @@ public class Panda {
         this.rating = rating;
     }
 
-    public Panda(int lat, int lon) {
+    public Panda(String id, double lat, double lon, double rating) {
+        this.id = id;
+        this.lat = lat;
+        this.lon = lon;
+        this.rating = rating;
+    }
+
+    public Panda(String id, double lat, double lon) {
+        this.id = id;
+        this.lat = lat;
+        this.lon = lon;
+    }
+
+    public Panda(double lat, double lon) {
         this.lat = lat;
         this.lon = lon;
     }
@@ -26,11 +44,11 @@ public class Panda {
         Address = address;
     }
 
-    public void setLat(int lat) {
+    public void setLat(double lat) {
         this.lat = lat;
     }
 
-    public void setLon(int lon) {
+    public void setLon(double lon) {
         this.lon = lon;
     }
 
@@ -38,7 +56,7 @@ public class Panda {
         this.distance = distance;
     }
 
-    public void setRating(int rating) {
+    public void setRating(double rating) {
         this.rating = rating;
     }
 
@@ -47,11 +65,11 @@ public class Panda {
         return Address;
     }
 
-    public int getLat() {
+    public double getLat() {
         return lat;
     }
 
-    public int getLon() {
+    public double getLon() {
         return lon;
     }
 
@@ -59,7 +77,7 @@ public class Panda {
         return distance;
     }
 
-    public int getRating() {
+    public double getRating() {
         return rating;
     }
 }

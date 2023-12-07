@@ -34,6 +34,9 @@ public class PandaAdapter extends RecyclerView.Adapter<PandaAdapter.PandaViewHol
         Panda p = pandas.get(position);
         holder.txtAddress.setText(p.getAddress() + "");
         holder.txtDistance.setText(p.getDistance() + " miles away");
+
+        float rate = (float) p.getRating();
+        holder.rbAverageRating.setRating(rate);
     }
 
     @Override
