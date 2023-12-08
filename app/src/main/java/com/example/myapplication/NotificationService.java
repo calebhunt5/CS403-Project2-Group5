@@ -1,6 +1,5 @@
 package com.example.myapplication;
 
-import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,53 +10,53 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
-
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
 
 import java.net.URISyntaxException;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
-
 public class NotificationService extends Service {
-    public String user_id;
 
+    //String used to hold the channel ID for the notifications
     private static final String CHANNEL_ID = "Foreground Location Channel";
 
-    public static final int NOTIFICATION_ID = 222;
+    //Integer for the new garage sale notification ID
+    public static final int GARAGE_NOTIFICATION_ID = 1;
 
+    //Integer for the new request notification ID
+    public static final int REQUEST_NOTIFICATION_ID = 2;
 
+    //Integer for the item sale notification ID
+    public static final int SOLD_NOTIFICATION_ID = 3;
+
+    //Debug tag
     public static final String TAG = "NotifServiceTag";
 
-    DismissReceiver receiver;
-
+    //Shared preference editor
     SharedPreferences userSharedPref;
 
+    //clients id
+    String user_id;
+
+    //Socket used for communicating with the server
     private Socket mSocket;
     {
         try {
+            //Creates an IO socket using server route
             mSocket = IO.socket("https://pandaexpress-rating-backend-group5.onrender.com");
         } catch (URISyntaxException e) {}
     }
 
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Create a notification for running in the foreground
-        Notification foregroundNotification = createForegroundNotification();
 
-        Log.d("SharedPrefTest", "here?");
-        // Start the service in the foreground and show the notification
-        startForeground(NOTIFICATION_ID, foregroundNotification);
 
-        userSharedPref = getSharedPreferences("email", MODE_PRIVATE);
+        userSharedPref = getSharedPreferences("login_fields", MODE_PRIVATE);
         Log.d("SharedPrefTest", userSharedPref.getString("email", "NOOOOO"));
 
         if (userSharedPref.contains("email")) {
@@ -68,55 +67,89 @@ public class NotificationService extends Service {
             }
         }
 
-        mSocket.on("likedRating" + user_id, fn ->{
+
+
+
+        //Creates a "Listener" for the socket
+        //(When the client socket recieves the message "newGarageSale" from server it will run function fn)
+
+        mSocket.on("likedRating" + user_id , fn ->{
+
+            //Debug
             Log.d(TAG, "New Garage Sale from server");
+
+            //Create a notification
             Notification notification = new NotificationCompat.Builder(NotificationService.this,CHANNEL_ID)
                     .setSmallIcon(android.R.drawable.star_big_on)
-                    .setContentTitle("New garage sale near you!")
+                    .setContentTitle("Someone liked your rating!")
                     .setContentText("Tap to open App")
-                    .setContentIntent(setOnTapAction())
-                    .setDeleteIntent(setOnDismissAction())
+                    .setContentIntent(setOnGarageTapAction())
+                    .setDeleteIntent(setOnGarageDismissAction())
                     .build();
+
+            //Instantiate an instance of notification manager
             NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.notify(NOTIFICATION_ID,notification);
+
+            //Send the notification to the phone
+            manager.notify(GARAGE_NOTIFICATION_ID,notification);
         });
+
+
+
+
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onDestroy() {
+
+        //When onDestroy is triggered, shut down the socket and turn off the listener
         super.onDestroy();
         mSocket.disconnect();
-        mSocket.off("newGarageSale");
+        mSocket.off("likedRating" + user_id);
     }
 
-    public PendingIntent setOnTapAction(){
+    public PendingIntent setOnGarageTapAction(){
+        //Pending intent setOnGarageTapAction used to give the notification the ability to open to the main activity to log in when clicked
+
+        //Create intent for the login page (MainActivity)
         Intent i = new Intent(this, HomeActivity.class);
+
+        //Create pending intent for notification to use
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,
-                NOTIFICATION_ID,
+                GARAGE_NOTIFICATION_ID,
                 i,
                 PendingIntent.FLAG_IMMUTABLE
         );
+
+        //Return the pending intent
         return pendingIntent;
     }
 
-    public PendingIntent setOnDismissAction(){
+    public PendingIntent setOnGarageDismissAction(){
+        //Pending intent setOnGarageDismissAction used to delete the pending intent
+
+        //Create intent with action to delete pending intent
         Intent i = new Intent("dismiss_broadcast");
+
+        //Create pending intent for notification to use
+        //(This pending intent just stops pending intents)
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,
-                NOTIFICATION_ID,
+                GARAGE_NOTIFICATION_ID,
                 i,
                 PendingIntent.FLAG_IMMUTABLE
         );
+
+        //Return the pending intent
         return pendingIntent;
     }
+
+
 
 
     public NotificationService() {
-        Log.d(TAG, "HELP");
-
-
     }
 
     @Override
@@ -129,40 +162,32 @@ public class NotificationService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        Log.d(TAG, "Hello?");
+        //Calls method to create a notification channel
         createNotificationChannel();
-        Log.d(TAG, "1");
-        DismissReceiver receiver = new DismissReceiver();
-        Log.d(TAG, "2");
-        IntentFilter filter = new IntentFilter("dismiss_broadcast");
-        Log.d(TAG, "3");
-        registerReceiver(receiver,filter);
-        Log.d(TAG, "4");
+
+        //Attempts to connect client socket to server socket
         mSocket.connect();
     }
 
     public void createNotificationChannel() {
+
+        //Creates a new notification channel called channel to send notification through
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 "Notify App Main Channel",
                 NotificationManager.IMPORTANCE_DEFAULT
         );
+
+        //Creates a new instance of notificationManager
         NotificationManager manager = getSystemService(NotificationManager.class);
+
+        //Create notificationChannel using channel
         manager.createNotificationChannel(channel);
+
+        //Debug
         Log.d(TAG, "Main Channel created");
     }
 
-    class DismissReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch(intent.getAction()){
-                case "dismiss_broadcast":
-                    Toast.makeText(context,"Notification was dismissed",Toast.LENGTH_LONG).show();
-                    break;
-            }
-        }
-    }
 
     private Notification createForegroundNotification() {
         // Create a notification channel if necessary
@@ -175,6 +200,7 @@ public class NotificationService extends Service {
                 .setSmallIcon(android.R.drawable.star_big_on)
                 .build();
 
+        //Return the notification
         return notification;
     }
 }

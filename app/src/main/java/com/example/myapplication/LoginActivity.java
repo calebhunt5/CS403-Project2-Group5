@@ -2,9 +2,13 @@
 package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -53,6 +57,8 @@ public class LoginActivity extends AppCompatActivity {
     // Booleans to check if email and password are valid
     boolean blnUsername = false, blnPassword = false;
 
+    public static final String TAG = "notifTag";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,7 +106,13 @@ public class LoginActivity extends AppCompatActivity {
             Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(i);
         });
+
+
+
+
     }
+
+
 
     // Check location permissions
     public void checkLocationPermissions() {

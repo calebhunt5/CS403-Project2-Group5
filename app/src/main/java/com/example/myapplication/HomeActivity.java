@@ -26,7 +26,7 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 
 public class HomeActivity extends AppCompatActivity {
-    public static final int NOTIFICATION_REQ_CODE = 111;
+
     public static final String TAG = "notifyTag";
     SessionManager sessionManager; // SessionManager to store session
 
@@ -38,8 +38,7 @@ public class HomeActivity extends AppCompatActivity {
     CookieManager cookieManager; // CookieManager to store cookies
     SearchView svAddressSearch; // Search bar
 
-    NotificationService notificationService;
-    SharedPreferences userSharedPref;
+    public static final int NOTIFICATION_REQ_CODE = 111;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,12 +58,12 @@ public class HomeActivity extends AppCompatActivity {
 
 
 
-
         checkForNotificationPermissions();
         //notificationService = new NotificationService();
 
         Intent i = new Intent(this, NotificationService.class);
-        startForegroundService(i);
+        ContextCompat.startForegroundService(this, i);
+
 
         //notificationService.createNotificationChannel();
 
