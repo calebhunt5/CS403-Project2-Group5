@@ -5,6 +5,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -30,6 +31,8 @@ import java.util.List;
 public class HomeActivity extends AppCompatActivity {
     final String strLocationsURL = "https://pandaexpress-rating-backend-group5.onrender.com/allPandas";
 
+    SharedPreferences savedSessionSharedPrefs; // SharedPreferences to store saved session information
+
     SessionManager sessionManager; // SessionManager to store session
 
     // Navigation sidebar
@@ -44,14 +47,43 @@ public class HomeActivity extends AppCompatActivity {
 
     List<String> arrPandaLocations = new ArrayList<>(); // List of Panda locations from the backend server
 
+    String strID = ""; // User ID
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        savedSessionSharedPrefs = getSharedPreferences("saved_session", MODE_PRIVATE); // Initialize the SharedPreferences
+
         sessionManager = new SessionManager(this); // Initialize the session manager
 
         cookieManager = new CookieManager(); // Initialize the cookie manager
+
+        if (savedSessionSharedPrefs.contains("sessionToken")) {
+            // Get the session token
+            String strSessionToken = savedSessionSharedPrefs.getString("sessionToken", null);
+
+            // Check if the session token is null
+            if (strSessionToken == null) {
+                // Display toast message
+                Toast.makeText(this, "Please sign in", Toast.LENGTH_SHORT).show();
+
+                // Handle sign out
+                switchActivity(new Intent(this, LoginActivity.class));
+            }
+            else {
+                // Save the session token
+                sessionManager.saveSessionInformation(strSessionToken);
+            }
+        }
+        else {
+            // Display toast message
+            Toast.makeText(this, "Please sign in", Toast.LENGTH_SHORT).show();
+
+            // Handle sign out
+            switchActivity(new Intent(this, LoginActivity.class));
+        }
 
         // Check if location permissions are granted
         checkLocationPermissions();
@@ -59,6 +91,8 @@ public class HomeActivity extends AppCompatActivity {
         getViews(); // Bind views
 
         addLocations(); // Add locations to the list
+
+        getID(); // Get ID from shared preferences
 
         // Search address text view click listener
         searchAddress();
@@ -117,6 +151,11 @@ public class HomeActivity extends AppCompatActivity {
         queue.add(jsonArrayRequest);
     }
 
+    public void getID() {
+        // Get ID from shared preferences
+        strID = savedSessionSharedPrefs.getString("user_id", null);
+    }
+
     // Navigation sidebar item click listener
     public void sideNavigation() {
         navigationView.setCheckedItem(R.id.nav_home); // Set the home item as checked
@@ -144,6 +183,8 @@ public class HomeActivity extends AppCompatActivity {
 
                 sessionManager.clearSession(); // Clear the session
 
+                savedSessionSharedPrefs.edit().clear().apply(); // Clear the saved session information
+
                 // Display toast message
                 Toast.makeText(this, "Signed out successfully", Toast.LENGTH_SHORT).show();
 
@@ -163,6 +204,9 @@ public class HomeActivity extends AppCompatActivity {
 
     // Switch activity
     public void switchActivity(Intent intent) {
+        if (intent.getComponent().getClassName().contains("LoginActivity"))
+            intent.putExtra("signOut", true); // Pass the sign out flag to the next activity"
+
         startActivity(intent); // Start the activity
         finish(); // Close the current activity
     }

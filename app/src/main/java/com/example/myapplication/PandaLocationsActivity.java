@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -54,6 +55,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
     NavigationView navigationView;
     Toolbar toolbar;
 
+    SharedPreferences savedSessionSharedPrefs; // SharedPreferences to store saved session information
+
     SessionManager sessionManager; // SessionManager to store session
     CookieManager cookieManager; // CookieManager to store cookies
 
@@ -69,6 +72,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
     Button btnSearch;
     EditText etSearch;
 
+    String strID = ""; // User ID
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +84,11 @@ public class PandaLocationsActivity extends AppCompatActivity {
         navigationView = findViewById(R.id.nav_view);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar); // Set the toolbar as the action bar
+        savedSessionSharedPrefs = getSharedPreferences("saved_session", MODE_PRIVATE);
+
+        sessionManager = new SessionManager(this); // Initialize the session manager
+
+        cookieManager = new CookieManager(); // Initialize the cookie manager
 
         pandas = new ArrayList<>();
         queue = Volley.newRequestQueue(this);
@@ -172,6 +182,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
             }
         });
+
+        getID(); // Get ID from intent
 
         // Get address extras from the intent - Hunter
         Intent intent = getIntent();
@@ -384,6 +396,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
                 sessionManager.clearSession(); // Clear the session
 
+                savedSessionSharedPrefs.edit().clear().apply(); // Clear the saved session information
+
                 // Display toast message
                 Toast.makeText(this, "Signed out successfully", Toast.LENGTH_SHORT).show();
 
@@ -401,8 +415,16 @@ public class PandaLocationsActivity extends AppCompatActivity {
         });
     }
 
+    public void getID() {
+        // Get ID from shared preferences
+        strID = savedSessionSharedPrefs.getString("user_id", null);
+    }
+
     // Switch activity - Hunter
     public void switchActivity(Intent intent) {
+        if (intent.getComponent().getClassName().contains("LoginActivity"))
+            intent.putExtra("signOut", true); // Pass the sign out flag to the next activity"
+
         startActivity(intent); // Start the activity
         finish(); // Close the current activity
     }

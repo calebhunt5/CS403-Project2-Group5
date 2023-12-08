@@ -26,6 +26,7 @@ import org.json.JSONObject;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.HttpCookie;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     final String strLoginURL = "https://pandaexpress-rating-backend-group5.onrender.com/users/login"; // URL to login API
 
     SharedPreferences loginSharedPrefs; // SharedPreferences to store login fields and auth cookies
+    SharedPreferences savedSessionSharedPrefs; // SharedPreferences to store saved session information
     SessionManager sessionManager; // SessionManager to store session
 
     // References to EditTexts, CheckBox, and Buttons
@@ -53,6 +55,8 @@ public class LoginActivity extends AppCompatActivity {
     // Booleans to check if email and password are valid
     boolean blnUsername = false, blnPassword = false;
 
+    boolean blnRemember = false; // Boolean to check if Remember Me is selected
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +64,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Get login fields from SharedPreferences
         loginSharedPrefs = getSharedPreferences("login_fields", MODE_PRIVATE);
+        savedSessionSharedPrefs = getSharedPreferences("saved_session", MODE_PRIVATE);
 
         sessionManager = new SessionManager(this); // Initializes session manager
 
@@ -73,15 +78,37 @@ public class LoginActivity extends AppCompatActivity {
         cookieManager = new CookieManager();
         CookieHandler.setDefault(cookieManager);
 
-        // Check if there is a saved session
+        // Get references to EditTexts, CheckBox, and Buttons
+        getViews();
+
         if (sessionManager.hasSavedSessionInformation()) {
             // If yes, redirect to the home screen
             startActivity(new Intent(this, HomeActivity.class));
             finish(); // Close the current activity
         }
 
-        // Get references to EditTexts, CheckBox, and Buttons
-        getViews();
+        // Get intent extra
+        Intent intent = getIntent();
+        boolean blnLogout = intent.getBooleanExtra("signOut", false);
+
+        // Check if user is signed out
+        if (blnLogout) {
+            Log.d("wowza", "User signed out");
+
+            // Clear session
+            sessionManager.clearSession();
+
+            // Clear login fields
+            loginSharedPrefs.edit().putString("email", "").apply();
+            loginSharedPrefs.edit().putString("password", "").apply();
+
+
+            // Clear email and password from EditText
+            etLoginUsername.setText("");
+            etLoginPassword.setText("");
+
+            cbRemember.setChecked(false);
+        }
 
         // Check location permissions
         checkLocationPermissions();
@@ -89,6 +116,13 @@ public class LoginActivity extends AppCompatActivity {
         // Enables login button if both email and password are valid
         nameTextChanged();
         passwordChanged();
+
+        cbRemember.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked)
+                blnRemember = true;
+            else
+                blnRemember = false;
+        });
 
         // Checks if email and password match a user
         btnLogin.setOnClickListener(v -> {
@@ -226,13 +260,17 @@ public class LoginActivity extends AppCompatActivity {
                 if (strResponse.contains("Successfully logged in")) {
                     pbLogin.setVisibility(ProgressBar.INVISIBLE); // Hide progress bar
 
-                    // Check if Remember Me is selected
-                    if (cbRemember.isChecked())
-                        // Save session information
-                        sessionManager.saveSessionInformation(cookieManager.getCookieStore().getCookies().get(0).toString());
+                    String strUserName = response.getString("username");
+                    String strUserID = response.getString("user_id");
+
+                    // Save session information
+                    savedSessionSharedPrefs.edit().putString("sessionToken", strUserID).apply();
+                    savedSessionSharedPrefs.edit().putString("user_id", strUserID).apply();
 
                     // Go to MainActivity
                     Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+                    i.putExtra("username", strUserName);
+                    i.putExtra("user_id", strUserID);
                     startActivity(i);
                 }
 
@@ -274,11 +312,27 @@ public class LoginActivity extends AppCompatActivity {
         String strEmail = etLoginUsername.getText().toString();
         String strPassword = etLoginPassword.getText().toString();
 
-        // Save email and password to SharedPreferences
-        SharedPreferences.Editor editor = loginSharedPrefs.edit();
-        editor.putString("email", strEmail);
-        editor.putString("password", strPassword);
-        editor.apply();
+        // Check cbRemember
+        if (cbRemember.isChecked())
+            blnRemember = true;
+        else
+            blnRemember = false;
+
+        // Check if email and password are empty
+        if (strEmail.isEmpty() || strPassword.isEmpty())
+            return;
+
+        // Check if Remember Me is selected
+        if (blnRemember) {
+            // Save email and password to SharedPreferences
+            loginSharedPrefs.edit().putString("email", strEmail).apply();
+            loginSharedPrefs.edit().putString("password", strPassword).apply();
+        }
+        else {
+            // Clear email and password from SharedPreferences
+            loginSharedPrefs.edit().putString("email", "").apply();
+            loginSharedPrefs.edit().putString("password", "").apply();
+        }
     }
 
     // Load login fields from SharedPreferences
@@ -291,7 +345,11 @@ public class LoginActivity extends AppCompatActivity {
         String strEmail = loginSharedPrefs.getString("email", "");
         String strPassword = loginSharedPrefs.getString("password", "");
 
-        // Check if email and password are empty
+        if (cbRemember.isChecked())
+            cbRemember.setChecked(false);
+        else
+            cbRemember.setChecked(true);
+
         if (strEmail.isEmpty() || strPassword.isEmpty())
             return;
 
