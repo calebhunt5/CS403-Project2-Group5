@@ -232,7 +232,9 @@ public class LoginActivity extends AppCompatActivity {
                         sessionManager.saveSessionInformation(cookieManager.getCookieStore().getCookies().get(0).toString());
 
                     // Go to MainActivity
-                    Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+                    //SET TO MAPS ACTIVITY FOR TEMPORARY DEV REASONS
+                    //Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+                    Intent i = new Intent(LoginActivity.this, MapsActivity.class);
                     startActivity(i);
                 }
 

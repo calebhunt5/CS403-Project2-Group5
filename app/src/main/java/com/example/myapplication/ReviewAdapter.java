@@ -19,15 +19,25 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookieStore;
+import java.net.HttpCookie;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder> {
     ArrayList<PandaReview> reviews;
     Context context;
+    CookieManager cookieManager;
 
     public ReviewAdapter(Context context, ArrayList<PandaReview> pandaReviews) {
         this.reviews = pandaReviews;
         this.context = context;
+
+        //cookie manager to help get id of currently logged in user
+        cookieManager = new CookieManager();
+        CookieHandler.setDefault(cookieManager);
     }
 
     @NonNull
@@ -42,7 +52,10 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         // get review
         PandaReview review = reviews.get(position);
 
-        Log.d("viewholder", review.toString());
+
+        List<HttpCookie> test = cookieManager.getCookieStore().getCookies();
+
+        Log.d("cookieholder", test.toString());
 
         /*
             * On click for like & more like functionality
@@ -53,7 +66,6 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         holder.tvDesc.setText(review.description);
         holder.tvLikes.setText(review.likes+"");
         holder.userRatingBar.setRating((float) review.rating);
-
 
     }
 
