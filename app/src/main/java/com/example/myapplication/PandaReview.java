@@ -5,6 +5,7 @@
 
 package com.example.myapplication;
 
+
 public class PandaReview {
     String userName, description;
     int rating;
