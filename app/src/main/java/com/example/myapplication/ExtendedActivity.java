@@ -130,6 +130,7 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
                         PandaReview currentReview = new PandaReview(
                                 currentReviewObj.getString("actualUserName"),
                                 currentReviewObj.getString("description"),
+                                currentReviewObj.getString("busy"),
                                 currentReviewObj.getInt("rating"),
                                 currentReviewObj.getInt("numLikes"),
                                 false

@@ -6,6 +6,8 @@
 package com.example.myapplication;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,6 +57,32 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         holder.userRatingBar.setRating((float) review.rating);
 
 
+        // TM: Extras
+        holder.tvPortions.setText("My Portions:");
+        // TODO - Populate image, will probably need to convert from byte array
+
+        String howBusy = review.busy;
+        holder.tvBusy.setText("Busy? " +howBusy);
+
+            //{"Extremely", "Somewhat", "Average", "Not really", "Dead"}
+        switch (howBusy){
+            case "Extremely":
+                holder.ivBusy.setColorFilter(Color.parseColor("#FF0000"), PorterDuff.Mode.SRC_IN);
+                break;
+            case "Somewhat":
+                holder.ivBusy.setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+                break;
+            case "Average":
+                holder.ivBusy.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_IN);
+                break;
+            case "Not really":
+                holder.ivBusy.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
+                break;
+            default:
+                holder.ivBusy.setColorFilter(Color.parseColor("#00FF00"), PorterDuff.Mode.SRC_IN);
+                break;
+        }
+
     }
 
     @Override
@@ -64,7 +92,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
     class ReviewViewHolder extends RecyclerView.ViewHolder {
         ConstraintLayout reviewLayout;
-        TextView tvName, tvLikes, tvDesc;
+        TextView tvName, tvLikes, tvDesc, tvBusy, tvPortions;
+        ImageView ivPortions, ivBusy;
         ToggleButton tbLike;
         RatingBar userRatingBar;
 
@@ -78,6 +107,10 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             tvLikes = view.findViewById(R.id.tvLikes);
             tbLike = view.findViewById(R.id.tbLike);
             userRatingBar = view.findViewById(R.id.userRatingBar);
+            tvBusy = view.findViewById(R.id.tvBusy);
+            tvPortions = view.findViewById(R.id.tvPortions);
+            ivBusy = view.findViewById(R.id.ivBusy);
+            ivPortions = view.findViewById(R.id.ivPortions);
         }
     }
 }

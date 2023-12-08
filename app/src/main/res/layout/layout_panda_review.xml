@@ -8,6 +8,16 @@
     android:background="#F1F1F1"
     android:padding="5dp">
 
+    <ImageView
+        android:id="@+id/ivBusy"
+        android:layout_width="43dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="8dp"
+        android:src="@tools:sample/avatars"
+        app:layout_constraintStart_toEndOf="@+id/tvBusy"
+        app:layout_constraintTop_toTopOf="@+id/tvBusy"
+        app:srcCompat="@drawable/baseline_people_24" />
+
     <RatingBar
         android:id="@+id/userRatingBar"
         style="?android:attr/ratingBarStyleSmall"
@@ -15,13 +25,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
         android:isIndicator="true"
         android:numStars="5"
         android:scaleX="1.5"
         android:scaleY="1.5"
         android:stepSize="0.1"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/tvDesc"
         app:layout_constraintTop_toBottomOf="@+id/tvDesc" />
 
@@ -88,5 +96,34 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivPortions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvPortions"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <TextView
+        android:id="@+id/tvBusy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/userRatingBar" />
+
+    <TextView
+        android:id="@+id/tvPortions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="TextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvBusy" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
