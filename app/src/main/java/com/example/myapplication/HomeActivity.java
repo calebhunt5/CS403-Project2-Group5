@@ -76,9 +76,9 @@ public class HomeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please enter an address", Toast.LENGTH_SHORT).show();
             else {
                 // Go to list activity
-//                Intent intent = new Intent(this, PandaLocationsActivity.class);
-//                intent.putExtra("address", strAddress);
-//                startActivity(intent);
+                Intent intent = new Intent(this, PandaLocationsActivity.class);
+                intent.putExtra("address", strAddress);
+                startActivity(intent);
             }
         });
     }
@@ -131,7 +131,7 @@ public class HomeActivity extends AppCompatActivity {
             }
             else if (itemId == R.id.nav_locations) {
                 // Handle sign out
-//                switchActivity(new Intent(this, PandaLocationsActivity.class));
+                switchActivity(new Intent(this, PandaLocationsActivity.class));
             }
             else if (itemId == R.id.nav_map) {
                 // Handle sign out

@@ -1,12 +1,15 @@
 package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -19,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -31,17 +35,27 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.navigation.NavigationView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.CookieManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 public class PandaLocationsActivity extends AppCompatActivity {
+
+    // Navigation sidebar
+    DrawerLayout drawer;
+    NavigationView navigationView;
+    Toolbar toolbar;
+
+    SessionManager sessionManager; // SessionManager to store session
+    CookieManager cookieManager; // CookieManager to store cookies
 
     ArrayList<Panda> pandas;
     RecyclerView rvPandas;
@@ -59,6 +73,12 @@ public class PandaLocationsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_panda_locations);
+
+        // Navigation sidebar - Hunter
+        drawer = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar); // Set the toolbar as the action bar
 
         pandas = new ArrayList<>();
         queue = Volley.newRequestQueue(this);
@@ -153,32 +173,44 @@ public class PandaLocationsActivity extends AppCompatActivity {
             }
         });
 
+        // Get address extras from the intent - Hunter
+        Intent intent = getIntent();
+        String strAddress = intent.getStringExtra("address");
+        if (strAddress != null)
+            etSearch.setText(strAddress);
+
         //ItemTouchHelper helper = new ItemTouchHelper()
 
         btnSearch.setOnClickListener(e -> {
-            if (btnSearch.getText().toString().equalsIgnoreCase("Search")) {
-                String search = etSearch.getText().toString();
-                search = search.toLowerCase();
-
-                ArrayList<Panda> searchedWords = new ArrayList<>();
-                for (int i = 0; i < pandas.size(); i++) {
-                    if (pandas.get(i).getAddress().toLowerCase().contains(search)) {
-                        searchedWords.add(pandas.get(i));
-                    }
-                }
-
-                PandaAdapter searchedAdapter = new PandaAdapter(getApplicationContext(), searchedWords);
-                rvPandas.setAdapter(searchedAdapter);
-                btnSearch.setText("Clear");
-            }
-            else {
-                etSearch.setText("");
-                btnSearch.setText("Search");
-
-                rvPandas.setAdapter(pandaAdapter);
-            }
+            searchAddress();
         });
 
+        sideNavigation(); // Navigation sidebar item click listener
+    }
+
+    // Search address text view click listener - Hunter (Copied from btnSearch and put in its own method)
+    public void searchAddress() {
+        if (btnSearch.getText().toString().equalsIgnoreCase("Search")) {
+            String search = etSearch.getText().toString().trim().replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", " "); // Added regex - hunter
+            search = search.toLowerCase();
+
+            ArrayList<Panda> searchedWords = new ArrayList<>();
+            for (int i = 0; i < pandas.size(); i++) {
+                if (pandas.get(i).getFullAddress().toLowerCase().trim().replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", " ").contains(search)) {
+                    searchedWords.add(pandas.get(i));
+                }
+            }
+
+            PandaAdapter searchedAdapter = new PandaAdapter(getApplicationContext(), searchedWords);
+            rvPandas.setAdapter(searchedAdapter);
+            btnSearch.setText("Clear");
+        }
+        else {
+            etSearch.setText("");
+            btnSearch.setText("Search");
+
+            rvPandas.setAdapter(pandaAdapter);
+        }
     }
 
     public void getPandasFromServer() {
@@ -232,8 +264,13 @@ public class PandaLocationsActivity extends AppCompatActivity {
                             double curLat = pandas.get(i).getLat();
                             double curLng = pandas.get(i).getLon();
                             String curAddress = convertCoordinatesToAddress(curLat, curLng);
-
                             pandas.get(i).setAddress(curAddress);
+
+                            try {
+                                pandas.get(i).setFullAddress(response.getJSONObject(i).getString("address"));
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
 
                         //calcualte distance to each panda
@@ -320,4 +357,61 @@ public class PandaLocationsActivity extends AppCompatActivity {
         return address;
     }
 
+    // Navigation sidebar item click listener - Hunter
+    public void sideNavigation() {
+        navigationView.setCheckedItem(R.id.nav_locations); // Set the home item as checked
+
+        // Set the navigation sidebar
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId(); // Get the id of the clicked item
+
+            // Start the corresponding activity
+            if (itemId == R.id.nav_home) {
+                switchActivity(new Intent(this, HomeActivity.class));
+            }
+            else if (itemId == R.id.nav_locations) {
+                // Handle sign out
+                switchActivity(new Intent(this, PandaLocationsActivity.class));
+            }
+            else if (itemId == R.id.nav_map) {
+                // Handle sign out
+//                switchActivity(new Intent(this, MapsActivity.class));
+            }
+            else if (itemId == R.id.nav_signout) {
+                // Clear the cookies
+                if (cookieManager.getCookieStore().getCookies().size() > 0)
+                    cookieManager.getCookieStore().removeAll();
+
+                sessionManager.clearSession(); // Clear the session
+
+                // Display toast message
+                Toast.makeText(this, "Signed out successfully", Toast.LENGTH_SHORT).show();
+
+                // Handle sign out
+                switchActivity(new Intent(this, LoginActivity.class));
+            }
+            else if (itemId == R.id.nav_settings) {
+                // Handle sign out
+//                switchActivity(new Intent(this, SettingsActivity.class));
+            }
+
+            // Close the navigation drawer
+            drawer.closeDrawers();
+            return true;
+        });
+    }
+
+    // Switch activity - Hunter
+    public void switchActivity(Intent intent) {
+        startActivity(intent); // Start the activity
+        finish(); // Close the current activity
+    }
+
+    // Hamburger menu - Hunter
+    @Override
+    public boolean onSupportNavigateUp() {
+        // Handle the Up button to open the navigation drawer
+        drawer.openDrawer(navigationView);
+        return true;
+    }
 }
