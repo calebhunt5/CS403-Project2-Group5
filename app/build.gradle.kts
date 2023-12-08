@@ -56,4 +56,8 @@ dependencies {
     // Bcrypt implementation
     implementation("at.favre.lib:bcrypt:0.10.2")
     implementation("com.android.volley:volley:1.2.1")
+
+    implementation("com.android.volley:volley:1.2.1")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("io.socket:socket.io-client:1.0.0")
 }
