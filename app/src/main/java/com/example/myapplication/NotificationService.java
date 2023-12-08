@@ -69,7 +69,7 @@ public class NotificationService extends Service {
     }
 
     public PendingIntent setOnTapAction(){
-        Intent i = new Intent(this, MainActivity.class);
+        Intent i = new Intent(this, HomeActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,
                 NOTIFICATION_ID,
