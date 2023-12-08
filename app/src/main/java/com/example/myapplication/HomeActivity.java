@@ -3,14 +3,18 @@ package com.example.myapplication;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -22,6 +26,8 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 
 public class HomeActivity extends AppCompatActivity {
+    public static final int NOTIFICATION_REQ_CODE = 111;
+    public static final String TAG = "notifyTag";
     SessionManager sessionManager; // SessionManager to store session
 
     // Navigation sidebar
@@ -31,6 +37,9 @@ public class HomeActivity extends AppCompatActivity {
 
     CookieManager cookieManager; // CookieManager to store cookies
     SearchView svAddressSearch; // Search bar
+
+    NotificationService notificationService;
+    SharedPreferences userSharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +56,31 @@ public class HomeActivity extends AppCompatActivity {
         getViews(); // Bind views
 
         sideNavigation(); // Navigation sidebar item click listener
+
+
+
+
+        checkForNotificationPermissions();
+        //notificationService = new NotificationService();
+
+        Intent i = new Intent(this, NotificationService.class);
+        startForegroundService(i);
+
+        //notificationService.createNotificationChannel();
+
+    }
+
+    //ask for notif permission
+    public void checkForNotificationPermissions() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_REQ_CODE);
+
+            Log.d(TAG, "NOTIFY permission deny");
+
+        }
+        else {
+            Log.d(TAG, "NOTIFY permission granted");
+        }
     }
 
     // Navigation sidebar item click listener

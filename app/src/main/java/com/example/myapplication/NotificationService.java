@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -9,10 +10,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import java.net.URISyntaxException;
 
@@ -21,14 +27,18 @@ import io.socket.client.Socket;
 
 
 public class NotificationService extends Service {
+    public String user_id;
 
     private static final String CHANNEL_ID = "Foreground Location Channel";
 
     public static final int NOTIFICATION_ID = 222;
 
+
     public static final String TAG = "NotifServiceTag";
 
     DismissReceiver receiver;
+
+    SharedPreferences userSharedPref;
 
     private Socket mSocket;
     {
@@ -43,10 +53,22 @@ public class NotificationService extends Service {
         // Create a notification for running in the foreground
         Notification foregroundNotification = createForegroundNotification();
 
+        Log.d("SharedPrefTest", "here?");
         // Start the service in the foreground and show the notification
         startForeground(NOTIFICATION_ID, foregroundNotification);
 
-        mSocket.on("newGarageSale", fn ->{
+        userSharedPref = getSharedPreferences("email", MODE_PRIVATE);
+        Log.d("SharedPrefTest", userSharedPref.getString("email", "NOOOOO"));
+
+        if (userSharedPref.contains("email")) {
+            String s = userSharedPref.getString("email", "DEFAULT");
+
+            if (s.equals("DEFAULT") == false) {
+                user_id = s;
+            }
+        }
+
+        mSocket.on("likedRating" + user_id, fn ->{
             Log.d(TAG, "New Garage Sale from server");
             Notification notification = new NotificationCompat.Builder(NotificationService.this,CHANNEL_ID)
                     .setSmallIcon(android.R.drawable.star_big_on)
@@ -92,6 +114,9 @@ public class NotificationService extends Service {
 
 
     public NotificationService() {
+        Log.d(TAG, "HELP");
+
+
     }
 
     @Override
@@ -103,10 +128,16 @@ public class NotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Log.d(TAG, "Hello?");
         createNotificationChannel();
+        Log.d(TAG, "1");
         DismissReceiver receiver = new DismissReceiver();
+        Log.d(TAG, "2");
         IntentFilter filter = new IntentFilter("dismiss_broadcast");
+        Log.d(TAG, "3");
         registerReceiver(receiver,filter);
+        Log.d(TAG, "4");
         mSocket.connect();
     }
 

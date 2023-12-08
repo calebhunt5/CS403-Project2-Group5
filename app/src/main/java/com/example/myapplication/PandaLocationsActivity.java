@@ -43,7 +43,9 @@ import java.util.Comparator;
 
 public class PandaLocationsActivity extends AppCompatActivity {
 
+    //creation of arraylist to store all panda stores
     ArrayList<Panda> pandas;
+    //Creation of variables to display and populate recycler view
     RecyclerView rvPandas;
     RequestQueue queue;
     Geocoder geocoder;
@@ -52,6 +54,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
     PandaAdapter pandaAdapter;
     Spinner spFilter;
     String filter_options[] = {"Unsorted", "Rating", "Distance"};
+
+    //creation of search button and edit text
     Button btnSearch;
     EditText etSearch;
 
@@ -60,21 +64,24 @@ public class PandaLocationsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_panda_locations);
 
+        //initialize panda list, queue for volley, geocoder, and fused location provider client
         pandas = new ArrayList<>();
         queue = Volley.newRequestQueue(this);
         geocoder = new Geocoder(this);
         flpCli = LocationServices.getFusedLocationProviderClient(this);
 
+        //create adapter for spinner
         spFilter = findViewById(R.id.spFilter);
         ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, filter_options);
         spFilter.setAdapter(filterAdapter);
 
+        //connect search fields to screen
         btnSearch = findViewById(R.id.btnSearch);
         etSearch = findViewById(R.id.etSearch);
 
 
-
+        //test data
 //        pandas.add(new Panda("123 Sesame Street on the water", 2, 3, 5.5, 1));
 //        pandas.add(new Panda("Red Ball", 5, 8, 12.0, 3));
 //        pandas.add(new Panda("Crystal Vase", 10, 15, 20.5, 2));
@@ -87,24 +94,31 @@ public class PandaLocationsActivity extends AppCompatActivity {
 //        pandas.add(new Panda("Glass Bowl", 9, 13, 14.6, 4));
 //        pandas.add(new Panda("Metallic Sculpture", 11, 16, 25.0, 3));
         //pandas = getPandasFromServer();
+
+        //get pandas from server and enter them into pandas arrayList
         getPandasFromServer();
 
-        for (int i = 0; i < pandas.size(); i++) {
-            Log.d("mainPandas", "id: " + pandas.get(i).id + " lat " + pandas.get(i).lat + " lon " + pandas.get(i).lon);
-        }
+        //output all pandas from server for testing
+//        for (int i = 0; i < pandas.size(); i++) {
+//            Log.d("mainPandas", "id: " + pandas.get(i).id + " lat " + pandas.get(i).lat + " lon " + pandas.get(i).lon);
+//        }
 
+        //connect recycler view to screen
         rvPandas = findViewById(R.id.rvLocations);
 
-        //PandaAdapter pandaAdapter = new PandaAdapter(this, pandas);
+        //connect pandas arraylist to recycler view
         pandaAdapter = new PandaAdapter(this, pandas);
         rvPandas.setAdapter(pandaAdapter);
 
+        //create and establish layout manager for recycler view
         LinearLayoutManager pandaManager = new LinearLayoutManager(this);
         rvPandas.setLayoutManager(pandaManager);
 
+        //when user selects an item from the spinner filter recycler view accordingly
         spFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                //when rating is selected sort pandas from highest to lowest review
                 if (spFilter.getItemAtPosition(i).toString().equalsIgnoreCase("rating")) {
                     Log.d("ratedPandas", "WE IN RATE");
                     ArrayList<Panda> ratedPandas = new ArrayList<>();
@@ -113,9 +127,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
                         ratedPandas.add(pandas.get(j));
                     }
 
+                    //sort pandas from highest to lowest review
                     Collections.sort(ratedPandas, Comparator.comparingDouble(Panda::getRating).reversed());
 
-
+                    //change adapter to show pandas in rated order
                     PandaAdapter ratedAdapter = new PandaAdapter(getApplicationContext(), ratedPandas);
                     rvPandas.setAdapter(ratedAdapter);
 
