@@ -13,6 +13,12 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -32,6 +38,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class PandaLocationsActivity extends AppCompatActivity {
 
@@ -42,6 +50,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
     public static final int REQUEST_LOCATION_PERMISSION = 1;
     FusedLocationProviderClient flpCli;
     PandaAdapter pandaAdapter;
+    Spinner spFilter;
+    String filter_options[] = {"Unsorted", "Rating", "Distance"};
+    Button btnSearch;
+    EditText etSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +64,16 @@ public class PandaLocationsActivity extends AppCompatActivity {
         queue = Volley.newRequestQueue(this);
         geocoder = new Geocoder(this);
         flpCli = LocationServices.getFusedLocationProviderClient(this);
+
+        spFilter = findViewById(R.id.spFilter);
+        ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, filter_options);
+        spFilter.setAdapter(filterAdapter);
+
+        btnSearch = findViewById(R.id.btnSearch);
+        etSearch = findViewById(R.id.etSearch);
+
+
 
 //        pandas.add(new Panda("123 Sesame Street on the water", 2, 3, 5.5, 1));
 //        pandas.add(new Panda("Red Ball", 5, 8, 12.0, 3));
@@ -80,7 +102,82 @@ public class PandaLocationsActivity extends AppCompatActivity {
         LinearLayoutManager pandaManager = new LinearLayoutManager(this);
         rvPandas.setLayoutManager(pandaManager);
 
+        spFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (spFilter.getItemAtPosition(i).toString().equalsIgnoreCase("rating")) {
+                    Log.d("ratedPandas", "WE IN RATE");
+                    ArrayList<Panda> ratedPandas = new ArrayList<>();
+
+                    for (int j = 0; j < pandas.size(); j++) {
+                        ratedPandas.add(pandas.get(j));
+                    }
+
+                    Collections.sort(ratedPandas, Comparator.comparingDouble(Panda::getRating).reversed());
+
+
+                    PandaAdapter ratedAdapter = new PandaAdapter(getApplicationContext(), ratedPandas);
+                    rvPandas.setAdapter(ratedAdapter);
+
+//                    filter_options = new String[]{"Rating", "Distance"};
+//                    ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(getApplicationContext(),
+//                            android.R.layout.simple_spinner_dropdown_item, filter_options);
+//                    spFilter.setAdapter(filterAdapter);
+                }
+                else if (spFilter.getItemAtPosition(i).toString().equalsIgnoreCase("distance")) {
+                    Log.d("distancedPandas", "WE IN DISTANCE");
+                    ArrayList<Panda> distancedPandas = new ArrayList<>();
+
+                    for (int j = 0; j < pandas.size(); j++) {
+                        distancedPandas.add(pandas.get(j));
+                    }
+
+                    Collections.sort(distancedPandas, Comparator.comparingDouble(Panda::getDistance));
+
+                    PandaAdapter distancedAdapter = new PandaAdapter(getApplicationContext(), distancedPandas);
+                    rvPandas.setAdapter(distancedAdapter);
+
+//                    filter_options = new String[]{"Distance", "Rating"};
+//                    ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(getApplicationContext(),
+//                            android.R.layout.simple_spinner_dropdown_item, filter_options);
+//                    spFilter.setAdapter(filterAdapter);
+                }
+                else if (spFilter.getItemAtPosition(i).toString().equalsIgnoreCase("unsorted")) {
+                    rvPandas.setAdapter(pandaAdapter);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
         //ItemTouchHelper helper = new ItemTouchHelper()
+
+        btnSearch.setOnClickListener(e -> {
+            if (btnSearch.getText().toString().equalsIgnoreCase("Search")) {
+                String search = etSearch.getText().toString();
+                search = search.toLowerCase();
+
+                ArrayList<Panda> searchedWords = new ArrayList<>();
+                for (int i = 0; i < pandas.size(); i++) {
+                    if (pandas.get(i).getAddress().toLowerCase().contains(search)) {
+                        searchedWords.add(pandas.get(i));
+                    }
+                }
+
+                PandaAdapter searchedAdapter = new PandaAdapter(getApplicationContext(), searchedWords);
+                rvPandas.setAdapter(searchedAdapter);
+                btnSearch.setText("Clear");
+            }
+            else {
+                etSearch.setText("");
+                btnSearch.setText("Search");
+
+                rvPandas.setAdapter(pandaAdapter);
+            }
+        });
 
     }
 
