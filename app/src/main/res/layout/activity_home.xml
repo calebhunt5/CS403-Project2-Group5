@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:text="PANDA PORTIONS"
+            android:text="@string/nav_header_title_cap"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:textSize="32sp"
@@ -41,19 +41,49 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/ivBackground" />
 
-        <androidx.appcompat.widget.SearchView
-            android:id="@+id/svAddressSearch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilSearchAddress"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
             android:layout_marginStart="32dp"
             android:layout_marginTop="32dp"
             android:layout_marginEnd="32dp"
-            android:background="@drawable/search_view_bg"
-            app:iconifiedByDefault="false"
+            android:hint="@string/prompt_search"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ivBackground"
-            app:queryHint="Search Address..." />
+            app:layout_constraintTop_toBottomOf="@+id/ivBackground">
+
+            <AutoCompleteTextView
+                android:id="@+id/atxtSearchAddress"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="15sp"
+                android:selectAllOnFocus="true" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/prompt_search"
+            app:layout_constraintEnd_toEndOf="@+id/tilSearchAddress"
+            app:layout_constraintTop_toBottomOf="@+id/tilSearchAddress" />
+
+        <!--                <androidx.appcompat.widget.SearchView-->
+<!--            android:id="@+id/svAddressSearch"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="32dp"-->
+<!--            android:layout_marginTop="32dp"-->
+<!--            android:layout_marginEnd="32dp"-->
+<!--            android:background="@drawable/search_view_bg"-->
+<!--            app:iconifiedByDefault="false"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/ivBackground"-->
+<!--            app:queryHint="Search Address..." />-->
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <include
@@ -67,8 +97,8 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:fitsSystemWindows="true"
         android:clickable="true"
+        android:fitsSystemWindows="true"
         android:focusable="true"
         app:headerLayout="@layout/nav_header_navigation"
         app:menu="@menu/activity_main_drawer" />

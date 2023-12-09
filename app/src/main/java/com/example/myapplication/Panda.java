@@ -4,6 +4,7 @@ public class Panda {
 
     String id;
     String Address;
+    String FullAddress;
     double lat;
     double lon;
     double distance;
@@ -44,6 +45,8 @@ public class Panda {
         Address = address;
     }
 
+    public void setFullAddress(String fullAddress) {FullAddress = fullAddress;}
+
     public void setLat(double lat) {
         this.lat = lat;
     }
@@ -61,9 +64,9 @@ public class Panda {
     }
 
     //getters
-    public String getAddress() {
-        return Address;
-    }
+    public String getAddress() {return Address;}
+
+    public String getFullAddress() {return FullAddress;}
 
     public double getLat() {
         return lat;
