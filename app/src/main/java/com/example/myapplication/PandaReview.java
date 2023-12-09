@@ -13,14 +13,16 @@ public class PandaReview {
     int rating;
     int likes;
     boolean liked;
+    String _id;
 
 
-    public PandaReview(String userName, String description, int rating, int likes, boolean liked) {
+    public PandaReview(String userName, String description, int rating, int likes, boolean liked, String _id) {
         this.userName = userName;
         this.description =description;
         this.rating = rating;
         this.likes = likes;
         this.liked = liked;
+        this._id = _id;
     }
 
     public boolean isLiked() {

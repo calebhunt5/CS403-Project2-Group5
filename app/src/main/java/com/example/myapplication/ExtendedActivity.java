@@ -145,7 +145,8 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
                                 currentReviewObj.getString("description"),
                                 currentReviewObj.getInt("rating"),
                                 currentReviewObj.getInt("numLikes"),
-                                false
+                                false,
+                                currentReviewObj.getString("_id")
                         );
                         arrReviews.add(currentReview);
                     }

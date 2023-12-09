@@ -114,7 +114,6 @@ public class AddReviewActivity extends AppCompatActivity {
                     // Get response from API
                     String strResponse = response.getString("message");
 
-
                     // Display message
                     Toast.makeText(this, strResponse, Toast.LENGTH_SHORT).show();
 

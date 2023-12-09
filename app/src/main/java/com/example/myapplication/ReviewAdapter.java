@@ -6,6 +6,7 @@
 package com.example.myapplication;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.util.Log;
@@ -13,13 +14,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -44,6 +55,9 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         // get review
         PandaReview review = reviews.get(position);
 
+        SharedPreferences userSharedPref = context.getSharedPreferences("saved_session", Context.MODE_PRIVATE);
+        String s = userSharedPref.getString("user_id", "DEFAULT");
+
         Log.d("viewholder", review.toString());
 
         /*
@@ -54,8 +68,54 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         holder.tvName.setText(review.userName);
         holder.tvDesc.setText(review.description);
         holder.tvLikes.setText(review.likes+"");
+        holder.tbLike.setChecked(review.liked);
         holder.userRatingBar.setRating((float) review.rating);
 
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+
+        // Add like functionality
+        holder.tbLike.setOnClickListener(view -> {
+            // user id and rating id
+            holder.tbLike.setChecked(!holder.tbLike.isChecked());
+
+            // Create JSON object
+            JSONObject jsonBody = new JSONObject();
+            try {
+                jsonBody.put("user_id", s);
+                jsonBody.put("ratingID", review._id);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            String url = "https://pandaexpress-rating-backend-group5.onrender.com/likedRating";
+            // Create POST request
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody, response -> {
+                try {
+                    // Get response from API
+                    String strResponse = response.getString("message");
+
+                    // Check if response is success
+                    /* if (strResponse.contains("Successfully logged in")) {
+
+                    } */
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }, error -> {
+                Log.e("Volley", error.toString());
+            });
+
+            // Add request to queue
+            queue.add(jsonObjectRequest);
+
+            int intLikeNumber = Integer.parseInt(holder.tvLikes.getText().toString()) + 1;
+
+            // update likes
+            holder.tvLikes.setText(intLikeNumber +"");
+        });
 
         // TM: Extras
 

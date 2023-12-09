@@ -228,6 +228,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
                 startActivity(i);
 
+                // Reset adapter
+                rvPandas.setAdapter(pandaAdapter);
             }
         });
 
