@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -28,9 +29,9 @@ public class AddReviewActivity extends AppCompatActivity {
     EditText etReview;
     SeekBar sbRating;
     RatingBar rbRating;
-    Spinner spnBusy;
     int storeID;
     ProgressBar pbAdd;
+    SharedPreferences userSharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,12 +45,16 @@ public class AddReviewActivity extends AppCompatActivity {
         rbRating = findViewById(R.id.rbRating);
         btnSubmit = findViewById(R.id.btnSubmit);
 
-        // TM: Set default selection for business
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.busy_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spnBusy.setAdapter(adapter);
-        // Set the default selection
-        spnBusy.setSelection(adapter.getPosition("Somewhat"));
+        userSharedPref = getSharedPreferences("saved_session", MODE_PRIVATE);
+
+            String s = userSharedPref.getString("user_id", "DEFAULT");
+            Log.d("AHHHHHH", s);
+            if (s.equals("DEFAULT") == false)
+                userID = s;
+
+
+
+
 
         //queue for requests
         queue = Volley.newRequestQueue(this);
@@ -58,7 +63,10 @@ public class AddReviewActivity extends AppCompatActivity {
         storeID = getIntent().getIntExtra("storeID", 0);
 
         //goes to method to add review with store id passed in
-        btnSubmit.setOnClickListener(e -> { submitReview(storeID); });
+        btnSubmit.setOnClickListener(e -> { submitReview(storeID);
+            Toast.makeText(this, "Review submitted", Toast.LENGTH_SHORT).show();
+            finish();
+        });
 
         //seekbar listener that updates the ratings bar
         //visually when the user changes the seekbar
@@ -87,11 +95,11 @@ public class AddReviewActivity extends AppCompatActivity {
             // Create JSON object
             JSONObject jsonBody = new JSONObject();
             try {
-                jsonBody.put("username", "temp");
+                jsonBody.put("username", userID);
                 jsonBody.put("store_id", storeID);
-                jsonBody.put("description", storeID);
+                jsonBody.put("description", etReview.getText()+"");
                 jsonBody.put("rating", sbRating.getProgress());
-                jsonBody.put("busy", spnBusy.getSelectedItem().toString());
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -105,6 +113,7 @@ public class AddReviewActivity extends AppCompatActivity {
                 try {
                     // Get response from API
                     String strResponse = response.getString("message");
+
 
                     // Display message
                     Toast.makeText(this, strResponse, Toast.LENGTH_SHORT).show();
