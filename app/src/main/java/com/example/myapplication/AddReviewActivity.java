@@ -43,7 +43,6 @@ public class AddReviewActivity extends AppCompatActivity {
         sbRating = findViewById(R.id.sbRating);
         rbRating = findViewById(R.id.rbRating);
         btnSubmit = findViewById(R.id.btnSubmit);
-        spnBusy = findViewById(R.id.spnBusy);
 
         // TM: Set default selection for business
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.busy_array, android.R.layout.simple_spinner_item);

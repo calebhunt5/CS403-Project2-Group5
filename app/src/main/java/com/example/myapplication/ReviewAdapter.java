@@ -59,27 +59,6 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
         // TM: Extras
 
-        String howBusy = review.busy;
-        holder.tvBusy.setText("Busy? " +howBusy);
-
-            //{"Extremely", "Somewhat", "Average", "Not really", "Dead"}
-        switch (howBusy){
-            case "Extremely":
-                holder.ivBusy.setColorFilter(Color.parseColor("#FF0000"), PorterDuff.Mode.SRC_IN);
-                break;
-            case "Somewhat":
-                holder.ivBusy.setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
-                break;
-            case "Average":
-                holder.ivBusy.setColorFilter(Color.YELLOW, PorterDuff.Mode.SRC_IN);
-                break;
-            case "Not really":
-                holder.ivBusy.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
-                break;
-            default:
-                holder.ivBusy.setColorFilter(Color.parseColor("#00FF00"), PorterDuff.Mode.SRC_IN);
-                break;
-        }
 
     }
 
@@ -90,8 +69,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
     class ReviewViewHolder extends RecyclerView.ViewHolder {
         ConstraintLayout reviewLayout;
-        TextView tvName, tvLikes, tvDesc, tvBusy;
-        ImageView ivBusy;
+        TextView tvName, tvLikes, tvDesc;
+
         ToggleButton tbLike;
         RatingBar userRatingBar;
 
@@ -105,8 +84,6 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             tvLikes = view.findViewById(R.id.tvLikes);
             tbLike = view.findViewById(R.id.tbLike);
             userRatingBar = view.findViewById(R.id.userRatingBar);
-            tvBusy = view.findViewById(R.id.tvBusy);
-            ivBusy = view.findViewById(R.id.ivBusy);
         }
     }
 }

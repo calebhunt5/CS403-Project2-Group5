@@ -8,16 +8,6 @@
     android:background="#F1F1F1"
     android:padding="5dp">
 
-    <ImageView
-        android:id="@+id/ivBusy"
-        android:layout_width="43dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="8dp"
-        android:src="@drawable/baseline_people_24"
-        app:layout_constraintStart_toEndOf="@+id/tvBusy"
-        app:layout_constraintTop_toTopOf="@+id/tvBusy"
-        app:srcCompat="@drawable/baseline_people_24" />
-
     <RatingBar
         android:id="@+id/userRatingBar"
         style="?android:attr/ratingBarStyleSmall"
@@ -96,15 +86,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tvBusy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="TextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/userRatingBar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
