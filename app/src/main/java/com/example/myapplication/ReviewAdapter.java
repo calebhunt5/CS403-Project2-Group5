@@ -58,8 +58,6 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
 
         // TM: Extras
-        holder.tvPortions.setText("My Portions:");
-        // TODO - Populate image, will probably need to convert from byte array
 
         String howBusy = review.busy;
         holder.tvBusy.setText("Busy? " +howBusy);
@@ -92,8 +90,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
 
     class ReviewViewHolder extends RecyclerView.ViewHolder {
         ConstraintLayout reviewLayout;
-        TextView tvName, tvLikes, tvDesc, tvBusy, tvPortions;
-        ImageView ivPortions, ivBusy;
+        TextView tvName, tvLikes, tvDesc, tvBusy;
+        ImageView ivBusy;
         ToggleButton tbLike;
         RatingBar userRatingBar;
 
@@ -108,9 +106,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             tbLike = view.findViewById(R.id.tbLike);
             userRatingBar = view.findViewById(R.id.userRatingBar);
             tvBusy = view.findViewById(R.id.tvBusy);
-            tvPortions = view.findViewById(R.id.tvPortions);
             ivBusy = view.findViewById(R.id.ivBusy);
-            ivPortions = view.findViewById(R.id.ivPortions);
         }
     }
 }
