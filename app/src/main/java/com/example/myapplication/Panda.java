@@ -3,6 +3,7 @@ package com.example.myapplication;
 public class Panda {
 
     String id;
+    int storeID;
     String Address;
     String FullAddress;
     double lat;

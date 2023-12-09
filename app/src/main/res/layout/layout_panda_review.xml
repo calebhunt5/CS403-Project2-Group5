@@ -13,7 +13,7 @@
         android:layout_width="43dp"
         android:layout_height="32dp"
         android:layout_marginStart="8dp"
-        android:src="@tools:sample/avatars"
+        android:src="@drawable/baseline_people_24"
         app:layout_constraintStart_toEndOf="@+id/tvBusy"
         app:layout_constraintTop_toTopOf="@+id/tvBusy"
         app:srcCompat="@drawable/baseline_people_24" />

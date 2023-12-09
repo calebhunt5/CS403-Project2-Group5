@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -191,7 +192,31 @@ public class PandaLocationsActivity extends AppCompatActivity {
         if (strAddress != null)
             etSearch.setText(strAddress);
 
-        //ItemTouchHelper helper = new ItemTouchHelper()
+        ItemTouchHelper helper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                Log.d("test", "SWIPE REGISTER");
+
+                int position = viewHolder.getAdapterPosition();
+                Panda selectedPanda = pandas.get(position);
+                Intent i = new Intent(getApplicationContext(), ExtendedActivity.class);
+                i.putExtra("storeID", selectedPanda.storeID);
+
+                Log.d("test", "id: " + selectedPanda.id);
+                Log.d("test", "storeID: " + selectedPanda.storeID);
+
+                startActivity(i);
+
+            }
+        });
+
+        helper.attachToRecyclerView(rvPandas);
+
 
         btnSearch.setOnClickListener(e -> {
             searchAddress();
@@ -199,6 +224,12 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
         sideNavigation(); // Navigation sidebar item click listener
     }
+
+
+
+
+
+
 
     // Search address text view click listener - Hunter (Copied from btnSearch and put in its own method)
     public void searchAddress() {
@@ -248,6 +279,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
                                         responseObj.getDouble("latitude"),
                                         responseObj.getDouble("longitude")
                                 );
+
+                                tempPanda.storeID = responseObj.getInt("store_id");
 
                                 double avgRating = 0;
                                 if (responseObj.has("averageRating")) {
