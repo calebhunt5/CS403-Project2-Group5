@@ -24,4 +24,6 @@
     <string name="menu_map">Map</string>
     <string name="menu_signout">Sign out</string>
     <string name="menu_settings">Settings</string>
+
+    <string name="title_activity_maps">Maps</string>
 </resources>

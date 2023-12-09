@@ -236,6 +236,7 @@ public class LoginActivity extends AppCompatActivity {
 
     // Calls login URL and checks if email and password match a user
     public void login(User user) {
+        Log.d("loginReqMethod", "hitLoginMethod");
         // Create JSON object
         JSONObject jsonBody = new JSONObject();
         try {
@@ -252,6 +253,8 @@ public class LoginActivity extends AppCompatActivity {
             try {
                 // Get response from API
                 String strResponse = response.getString("message");
+
+                Log.d("loginReq", strResponse);
 
                 // Display message
                 Toast.makeText(this, strResponse, Toast.LENGTH_SHORT).show();
@@ -292,6 +295,7 @@ public class LoginActivity extends AppCompatActivity {
 
     // Return a user instance
     public User getUser() {
+        Log.d("getUser", "hit getUser");
         return new User(etLoginUsername.getText().toString().toLowerCase(), etLoginPassword.getText().toString());
     }
 
