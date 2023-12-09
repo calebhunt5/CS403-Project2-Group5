@@ -2,10 +2,14 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -29,6 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
+
+    public static final String TAG = "notifyTag";
+    SessionManager sessionManager; // SessionManager to store session
     final String strLocationsURL = "https://pandaexpress-rating-backend-group5.onrender.com/allPandas";
 
     SharedPreferences savedSessionSharedPrefs; // SharedPreferences to store saved session information
@@ -42,12 +49,13 @@ public class HomeActivity extends AppCompatActivity {
     AutoCompleteTextView atxtSearchAddress; // Search address text view
     Button btnSearch; // Search button
 
-    SessionManager sessionManager; // SessionManager to store session
     CookieManager cookieManager; // CookieManager to store cookies
 
     List<String> arrPandaLocations = new ArrayList<>(); // List of Panda locations from the backend server
 
     String strID = ""; // User ID
+
+    public static final int NOTIFICATION_REQ_CODE = 111;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +106,32 @@ public class HomeActivity extends AppCompatActivity {
         searchAddress();
 
         sideNavigation(); // Navigation sidebar item click listener
+
+
+
+        checkForNotificationPermissions();
+        //notificationService = new NotificationService();
+
+        Intent i = new Intent(this, NotificationService.class);
+        //ContextCompat.startForegroundService(this, i);
+        startService(i);
+
+
+        //notificationService.createNotificationChannel();
+
+    }
+
+    //ask for notif permission
+    public void checkForNotificationPermissions() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_REQ_CODE);
+
+            Log.d(TAG, "NOTIFY permission deny");
+
+        }
+        else {
+            Log.d(TAG, "NOTIFY permission granted");
+        }
     }
 
     public void searchAddress() {
