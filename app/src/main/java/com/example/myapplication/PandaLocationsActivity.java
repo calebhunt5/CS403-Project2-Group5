@@ -147,8 +147,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
                         distancedPandas.add(pandas.get(j));
                     }
 
+                    //sort list of pandas by distance
                     Collections.sort(distancedPandas, Comparator.comparingDouble(Panda::getDistance));
 
+                    //change adapter to be sorted by distance from close to far
                     PandaAdapter distancedAdapter = new PandaAdapter(getApplicationContext(), distancedPandas);
                     rvPandas.setAdapter(distancedAdapter);
 
@@ -158,6 +160,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
 //                    spFilter.setAdapter(filterAdapter);
                 }
                 else if (spFilter.getItemAtPosition(i).toString().equalsIgnoreCase("unsorted")) {
+                    //change adapter to be unsorted
                     rvPandas.setAdapter(pandaAdapter);
                 }
             }
@@ -170,11 +173,15 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
         //ItemTouchHelper helper = new ItemTouchHelper()
 
+        //change adapter to display search results when searched for
         btnSearch.setOnClickListener(e -> {
+            //if user is not currently searching
             if (btnSearch.getText().toString().equalsIgnoreCase("Search")) {
+                //get string user wants to search for
                 String search = etSearch.getText().toString();
                 search = search.toLowerCase();
 
+                //initialize list of all pandas
                 ArrayList<Panda> searchedWords = new ArrayList<>();
                 for (int i = 0; i < pandas.size(); i++) {
                     if (pandas.get(i).getAddress().toLowerCase().contains(search)) {
@@ -182,11 +189,13 @@ public class PandaLocationsActivity extends AppCompatActivity {
                     }
                 }
 
+                //change adapter over to display only search results
                 PandaAdapter searchedAdapter = new PandaAdapter(getApplicationContext(), searchedWords);
                 rvPandas.setAdapter(searchedAdapter);
                 btnSearch.setText("Clear");
             }
             else {
+                //clear out all search criteria and display all pandas
                 etSearch.setText("");
                 btnSearch.setText("Search");
 
@@ -199,8 +208,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
     public void getPandasFromServer() {
         //ArrayList<Panda> tempPandas = new ArrayList<>();
 
+        //url for our backend
         String url = "https://pandaexpress-rating-backend-group5.onrender.com/allPandas";
 
+        //get all pandas from backend
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONArray>() {
 
@@ -209,10 +220,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
                         Log.d("getPandasFromServer", "Success!!!");
                         Log.d("getPandasFromServer", response.toString());
 
+                        //loop through response and parse out pandas
                         for (int i = 0; i < response.length(); i++) {
                             try {
                                 JSONObject responseObj = response.getJSONObject(i);
-
 
                                 Panda tempPanda = new Panda (
                                         responseObj.getString("_id"),
@@ -254,8 +265,6 @@ public class PandaLocationsActivity extends AppCompatActivity {
                         //calcualte distance to each panda
                         convertCoordinatesToDistance();
 
-                        //get rating for each panda
-
 
                         pandaAdapter.notifyDataSetChanged();
 
@@ -275,6 +284,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
     public void convertCoordinatesToDistance() {
 
+        //get permission to use location from user
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d("locationPermission", "Location: permission denied");
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
@@ -290,10 +300,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
                 double phoneLat = location.getLatitude();
                 double phoneLng = location.getLongitude();
 
+                //calculate distance from phone to each panda location and store in panda object
                 for (int i = 0; i < pandas.size(); i++) {
                     double pandaLat = pandas.get(i).getLat();
                     double pandaLng = pandas.get(i).getLon();
-
 
                     double earthRadius = 3958.8;//radius of globe in miles
                     double dLat = Math.toRadians(pandaLat - phoneLat);
@@ -323,6 +333,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
         String address;
         String[] addressParts;
 
+        //try to convert the coordinates into an address, then take only the street address and city
         try {
             address = geocoder.getFromLocation(lat, lng, 1).get(0).getAddressLine(0);
             addressParts = address.split(",");

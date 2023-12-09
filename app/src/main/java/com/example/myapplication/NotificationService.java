@@ -25,14 +25,9 @@ public class NotificationService extends Service {
     //String used to hold the channel ID for the notifications
     private static final String CHANNEL_ID = "Foreground Location Channel";
 
-    //Integer for the new garage sale notification ID
-    public static final int GARAGE_NOTIFICATION_ID = 1;
+    //Integer for the notification ID
+    public static final int NOTIFICATION_ID = 1;
 
-    //Integer for the new request notification ID
-    public static final int REQUEST_NOTIFICATION_ID = 2;
-
-    //Integer for the item sale notification ID
-    public static final int SOLD_NOTIFICATION_ID = 3;
 
     //Debug tag
     public static final String TAG = "NotifServiceTag";
@@ -71,27 +66,27 @@ public class NotificationService extends Service {
 
 
         //Creates a "Listener" for the socket
-        //(When the client socket recieves the message "newGarageSale" from server it will run function fn)
+        //When the client socket receives message from server it will run function fn
 
         mSocket.on("likedRating" + user_id , fn ->{
 
             //Debug
-            Log.d(TAG, "New Garage Sale from server");
+            Log.d(TAG, "New Rating from server");
 
             //Create a notification
             Notification notification = new NotificationCompat.Builder(NotificationService.this,CHANNEL_ID)
                     .setSmallIcon(android.R.drawable.star_big_on)
                     .setContentTitle("Someone liked your rating!")
                     .setContentText("Tap to open App")
-                    .setContentIntent(setOnGarageTapAction())
-                    .setDeleteIntent(setOnGarageDismissAction())
+                    .setContentIntent(setOnTapAction())
+                    .setDeleteIntent(setOnDismissAction())
                     .build();
 
             //Instantiate an instance of notification manager
             NotificationManager manager = getSystemService(NotificationManager.class);
 
             //Send the notification to the phone
-            manager.notify(GARAGE_NOTIFICATION_ID,notification);
+            manager.notify(NOTIFICATION_ID,notification);
         });
 
 
@@ -109,16 +104,15 @@ public class NotificationService extends Service {
         mSocket.off("likedRating" + user_id);
     }
 
-    public PendingIntent setOnGarageTapAction(){
-        //Pending intent setOnGarageTapAction used to give the notification the ability to open to the main activity to log in when clicked
+    public PendingIntent setOnTapAction(){
 
-        //Create intent for the login page (MainActivity)
+        //Create intent for the login page (HomeActivity)
         Intent i = new Intent(this, HomeActivity.class);
 
         //Create pending intent for notification to use
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,
-                GARAGE_NOTIFICATION_ID,
+                NOTIFICATION_ID,
                 i,
                 PendingIntent.FLAG_IMMUTABLE
         );
@@ -127,8 +121,7 @@ public class NotificationService extends Service {
         return pendingIntent;
     }
 
-    public PendingIntent setOnGarageDismissAction(){
-        //Pending intent setOnGarageDismissAction used to delete the pending intent
+    public PendingIntent setOnDismissAction(){
 
         //Create intent with action to delete pending intent
         Intent i = new Intent("dismiss_broadcast");
@@ -137,7 +130,7 @@ public class NotificationService extends Service {
         //(This pending intent just stops pending intents)
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,
-                GARAGE_NOTIFICATION_ID,
+                NOTIFICATION_ID,
                 i,
                 PendingIntent.FLAG_IMMUTABLE
         );
@@ -196,7 +189,7 @@ public class NotificationService extends Service {
         // Create the notification
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Service Running")
-                .setContentText("Listening for garage sale updates...")
+                .setContentText("Listening for updates...")
                 .setSmallIcon(android.R.drawable.star_big_on)
                 .build();
 

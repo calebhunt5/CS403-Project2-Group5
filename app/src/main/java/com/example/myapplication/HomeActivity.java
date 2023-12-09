@@ -62,7 +62,8 @@ public class HomeActivity extends AppCompatActivity {
         //notificationService = new NotificationService();
 
         Intent i = new Intent(this, NotificationService.class);
-        ContextCompat.startForegroundService(this, i);
+        //ContextCompat.startForegroundService(this, i);
+        startService(i);
 
 
         //notificationService.createNotificationChannel();
