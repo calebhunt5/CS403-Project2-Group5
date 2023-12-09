@@ -4,11 +4,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -26,6 +28,7 @@ public class AddReviewActivity extends AppCompatActivity {
     EditText etReview;
     SeekBar sbRating;
     RatingBar rbRating;
+    Spinner spnBusy;
     int storeID;
     ProgressBar pbAdd;
 
@@ -40,6 +43,14 @@ public class AddReviewActivity extends AppCompatActivity {
         sbRating = findViewById(R.id.sbRating);
         rbRating = findViewById(R.id.rbRating);
         btnSubmit = findViewById(R.id.btnSubmit);
+        spnBusy = findViewById(R.id.spnBusy);
+
+        // TM: Set default selection for business
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.busy_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spnBusy.setAdapter(adapter);
+        // Set the default selection
+        spnBusy.setSelection(adapter.getPosition("Somewhat"));
 
         //queue for requests
         queue = Volley.newRequestQueue(this);
@@ -81,6 +92,7 @@ public class AddReviewActivity extends AppCompatActivity {
                 jsonBody.put("store_id", storeID);
                 jsonBody.put("description", storeID);
                 jsonBody.put("rating", sbRating.getProgress());
+                jsonBody.put("busy", spnBusy.getSelectedItem().toString());
             } catch (JSONException e) {
                 e.printStackTrace();
             }

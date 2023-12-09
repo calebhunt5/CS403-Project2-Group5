@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="busy_array">
+        <item>Extremely</item>
+        <item>Somewhat</item>
+        <item>Average</item>
+        <item>Not really</item>
+        <item>Dead</item>
+    </string-array>
+</resources>
