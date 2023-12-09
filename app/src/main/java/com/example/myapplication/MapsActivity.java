@@ -2,11 +2,15 @@ package com.example.myapplication;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -35,15 +39,26 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.myapplication.databinding.ActivityMapsBinding;
+import com.google.android.material.navigation.NavigationView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.CookieManager;
 import java.util.ArrayList;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+    // Navigation sidebar
+    DrawerLayout drawer;
+    NavigationView navigationView;
+    Toolbar toolbar;
+
+    SharedPreferences savedSessionSharedPrefs; // SharedPreferences to store saved session information - Hunter
+    SessionManager sessionManager; // SessionManager to store session - Hunter
+    CookieManager cookieManager; // CookieManager to store cookies - Hunter
+
     private GoogleMap map;
     private ActivityMapsBinding binding;
     Geocoder geocoder;
@@ -54,6 +69,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        savedSessionSharedPrefs = getSharedPreferences("saved_session", MODE_PRIVATE); // Initialize the SharedPreferences - Hunter
+        sessionManager = new SessionManager(this); // Initialize the session manager - Hunter
+        cookieManager = new CookieManager(); // Initialize the cookie manager - Hunter
+
         //get all panda express locations
         pandaLocations = new ArrayList<>();
         queue = Volley.newRequestQueue(this);
@@ -62,11 +81,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Navigation sidebar
+        drawer = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar); // Set the toolbar as the action bar
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         geocoder = new Geocoder(this);
+
+        sideNavigation(); // Navigation sidebar item click listener
     }
 
     /**
@@ -77,7 +104,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.setInfoWindowAdapter(new PandaInfoWindow());
-
 
         //add a marker on the map for each panda express location
         //and tie the object to that marker with the tag
@@ -143,6 +169,69 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         queue.add(jsonArrayRequest);
     };
+
+    // Navigation sidebar item click listener
+    public void sideNavigation() {
+        navigationView.setCheckedItem(R.id.nav_map); // Set the map item as checked
+
+        // Set the navigation sidebar
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId(); // Get the id of the clicked item
+
+            // Start the corresponding activity
+            if (itemId == R.id.nav_home) {
+                // Go to home
+                switchActivity(new Intent(this, HomeActivity.class));
+            }
+            else if (itemId == R.id.nav_locations) {
+                // Go to locations
+                switchActivity(new Intent(this, PandaLocationsActivity.class));
+            }
+            else if (itemId == R.id.nav_map) {
+                // Do nothing
+            }
+
+            else if (itemId == R.id.nav_signout) {
+                // Clear the cookies
+                if (cookieManager.getCookieStore().getCookies().size() > 0)
+                    cookieManager.getCookieStore().removeAll();
+
+                sessionManager.clearSession(); // Clear the session
+
+                savedSessionSharedPrefs.edit().clear().apply(); // Clear the saved session information
+
+                // Display toast message
+                Toast.makeText(this, "Signed out successfully", Toast.LENGTH_SHORT).show();
+
+                // Handle sign out
+                switchActivity(new Intent(this, LoginActivity.class));
+            }
+            else if (itemId == R.id.nav_settings) {
+                // Go to settings
+//                switchActivity(new Intent(this, SettingsActivity.class));
+            }
+
+            // Close the navigation drawer
+            drawer.closeDrawers();
+            return true;
+        });
+    }
+
+    // Switch activity
+    public void switchActivity(Intent intent) {
+        if (intent.getComponent().getClassName().contains("LoginActivity"))
+            intent.putExtra("signOut", true); // Pass the sign out flag to the next activity"
+
+        startActivity(intent); // Start the activity
+        finish(); // Close the current activity
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        // Handle the Up button to open the navigation drawer
+        drawer.openDrawer(navigationView);
+        return true;
+    }
 
     //class for the custom map window
     class PandaInfoWindow implements GoogleMap.InfoWindowAdapter{

@@ -371,7 +371,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
     // Navigation sidebar item click listener - Hunter
     public void sideNavigation() {
-        navigationView.setCheckedItem(R.id.nav_locations); // Set the home item as checked
+        navigationView.setCheckedItem(R.id.nav_locations); // Set the locations item as checked
 
         // Set the navigation sidebar
         navigationView.setNavigationItemSelectedListener(item -> {
@@ -379,15 +379,15 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
             // Start the corresponding activity
             if (itemId == R.id.nav_home) {
+                // Go to home
                 switchActivity(new Intent(this, HomeActivity.class));
             }
             else if (itemId == R.id.nav_locations) {
-                // Handle sign out
-                switchActivity(new Intent(this, PandaLocationsActivity.class));
+                // Do nothing
             }
             else if (itemId == R.id.nav_map) {
-                // Handle sign out
-//                switchActivity(new Intent(this, MapsActivity.class));
+                // Go to map
+                switchActivity(new Intent(this, MapsActivity.class));
             }
             else if (itemId == R.id.nav_signout) {
                 // Clear the cookies
@@ -405,7 +405,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
                 switchActivity(new Intent(this, LoginActivity.class));
             }
             else if (itemId == R.id.nav_settings) {
-                // Handle sign out
+                // Go to settings
 //                switchActivity(new Intent(this, SettingsActivity.class));
             }
 

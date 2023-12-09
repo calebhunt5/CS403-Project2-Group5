@@ -16,11 +16,11 @@
         android:label="activity_register"
         tools:layout="@layout/activity_panda_locations" />
 
-<!--    <activity-->
-<!--        android:id="@+id/nav_map"-->
-<!--        android:name="com.example.myapplication.MapsActivity"-->
-<!--        android:label="activity_register"-->
-<!--        tools:layout="@layout/activity_maps" />-->
+    <activity
+        android:id="@+id/nav_map"
+        android:name="com.example.myapplication.MapsActivity"
+        android:label="activity_maps"
+        tools:layout="@layout/activity_maps" />
 
     <activity
         android:id="@+id/nav_login"

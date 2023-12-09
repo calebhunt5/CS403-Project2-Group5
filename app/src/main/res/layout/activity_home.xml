@@ -57,7 +57,7 @@
                 android:id="@+id/atxtSearchAddress"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingHorizontal="5sp"
+                android:paddingHorizontal="15sp"
                 android:selectAllOnFocus="true" />
 
         </com.google.android.material.textfield.TextInputLayout>

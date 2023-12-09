@@ -350,9 +350,9 @@ public class LoginActivity extends AppCompatActivity {
         String strPassword = loginSharedPrefs.getString("password", "");
 
         if (cbRemember.isChecked())
-            cbRemember.setChecked(false);
-        else
             cbRemember.setChecked(true);
+        else
+            cbRemember.setChecked(false);
 
         if (strEmail.isEmpty() || strPassword.isEmpty())
             return;

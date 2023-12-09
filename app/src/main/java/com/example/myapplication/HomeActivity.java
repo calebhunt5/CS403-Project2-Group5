@@ -106,7 +106,7 @@ public class HomeActivity extends AppCompatActivity {
             String strAddress = atxtSearchAddress.getText().toString(); // Get the address
 
             // Check if the address is empty
-            if (strAddress.isEmpty())
+            if (strAddress.isEmpty() || strAddress.equals(" "))
                 Toast.makeText(this, "Please enter an address", Toast.LENGTH_SHORT).show();
             else {
                 // Go to list activity
@@ -169,12 +169,12 @@ public class HomeActivity extends AppCompatActivity {
                 // Do nothing
             }
             else if (itemId == R.id.nav_locations) {
-                // Handle sign out
+                // Go to locations
                 switchActivity(new Intent(this, PandaLocationsActivity.class));
             }
             else if (itemId == R.id.nav_map) {
-                // Handle sign out
-//                switchActivity(new Intent(this, MapsActivity.class));
+                // Go to map
+                switchActivity(new Intent(this, MapsActivity.class));
             }
             else if (itemId == R.id.nav_signout) {
                 // Clear the cookies
@@ -192,7 +192,7 @@ public class HomeActivity extends AppCompatActivity {
                 switchActivity(new Intent(this, LoginActivity.class));
             }
             else if (itemId == R.id.nav_settings) {
-                // Handle sign out
+                // Go to settings
 //                switchActivity(new Intent(this, SettingsActivity.class));
             }
 
