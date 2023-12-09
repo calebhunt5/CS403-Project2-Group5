@@ -13,7 +13,7 @@
     <activity
         android:id="@+id/nav_locations"
         android:name="com.example.myapplication.PandaLocationsActivity"
-        android:label="activity_register"
+        android:label="activity_panda_locations"
         tools:layout="@layout/activity_panda_locations" />
 
     <activity
@@ -28,9 +28,9 @@
         android:label="activity_login"
         tools:layout="@layout/activity_login" />
 
-<!--    <activity-->
-<!--        android:id="@+id/nav_settings"-->
-<!--        android:name="com.example.myapplication.SettingsActivity"-->
-<!--        android:label="activity_register"-->
-<!--        tools:layout="@layout/activity_settings" />-->
+    <activity
+        android:id="@+id/nav_settings"
+        android:name="com.example.myapplication.SettingsActivity"
+        android:label="activity_settings"
+        tools:layout="@layout/activity_settings" />
 </navigation>

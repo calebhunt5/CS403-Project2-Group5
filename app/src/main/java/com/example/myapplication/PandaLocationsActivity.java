@@ -406,7 +406,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
             }
             else if (itemId == R.id.nav_settings) {
                 // Go to settings
-//                switchActivity(new Intent(this, SettingsActivity.class));
+                switchActivity(new Intent(this, SettingsActivity.class));
             }
 
             // Close the navigation drawer

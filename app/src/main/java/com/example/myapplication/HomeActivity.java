@@ -33,7 +33,6 @@ public class HomeActivity extends AppCompatActivity {
 
     SharedPreferences savedSessionSharedPrefs; // SharedPreferences to store saved session information
 
-    SessionManager sessionManager; // SessionManager to store session
 
     // Navigation sidebar
     DrawerLayout drawer;
@@ -43,6 +42,7 @@ public class HomeActivity extends AppCompatActivity {
     AutoCompleteTextView atxtSearchAddress; // Search address text view
     Button btnSearch; // Search button
 
+    SessionManager sessionManager; // SessionManager to store session
     CookieManager cookieManager; // CookieManager to store cookies
 
     List<String> arrPandaLocations = new ArrayList<>(); // List of Panda locations from the backend server
@@ -193,7 +193,7 @@ public class HomeActivity extends AppCompatActivity {
             }
             else if (itemId == R.id.nav_settings) {
                 // Go to settings
-//                switchActivity(new Intent(this, SettingsActivity.class));
+                switchActivity(new Intent(this, SettingsActivity.class));
             }
 
             // Close the navigation drawer
