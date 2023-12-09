@@ -61,6 +61,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
     CookieManager cookieManager; // CookieManager to store cookies
 
     ArrayList<Panda> pandas;
+    //Creation of variables to display and populate recycler view
     RecyclerView rvPandas;
     RequestQueue queue;
     Geocoder geocoder;
@@ -69,6 +70,8 @@ public class PandaLocationsActivity extends AppCompatActivity {
     PandaAdapter pandaAdapter;
     Spinner spFilter;
     String filter_options[] = {"Unsorted", "Rating", "Distance"};
+
+    //creation of search button and edit text
     Button btnSearch;
     EditText etSearch;
 
@@ -95,16 +98,18 @@ public class PandaLocationsActivity extends AppCompatActivity {
         geocoder = new Geocoder(this);
         flpCli = LocationServices.getFusedLocationProviderClient(this);
 
+        //create adapter for spinner
         spFilter = findViewById(R.id.spFilter);
         ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, filter_options);
         spFilter.setAdapter(filterAdapter);
 
+        //connect search fields to screen
         btnSearch = findViewById(R.id.btnSearch);
         etSearch = findViewById(R.id.etSearch);
 
 
-
+        //test data
 //        pandas.add(new Panda("123 Sesame Street on the water", 2, 3, 5.5, 1));
 //        pandas.add(new Panda("Red Ball", 5, 8, 12.0, 3));
 //        pandas.add(new Panda("Crystal Vase", 10, 15, 20.5, 2));
@@ -117,24 +122,31 @@ public class PandaLocationsActivity extends AppCompatActivity {
 //        pandas.add(new Panda("Glass Bowl", 9, 13, 14.6, 4));
 //        pandas.add(new Panda("Metallic Sculpture", 11, 16, 25.0, 3));
         //pandas = getPandasFromServer();
+
+        //get pandas from server and enter them into pandas arrayList
         getPandasFromServer();
 
-        for (int i = 0; i < pandas.size(); i++) {
-            Log.d("mainPandas", "id: " + pandas.get(i).id + " lat " + pandas.get(i).lat + " lon " + pandas.get(i).lon);
-        }
+        //output all pandas from server for testing
+//        for (int i = 0; i < pandas.size(); i++) {
+//            Log.d("mainPandas", "id: " + pandas.get(i).id + " lat " + pandas.get(i).lat + " lon " + pandas.get(i).lon);
+//        }
 
+        //connect recycler view to screen
         rvPandas = findViewById(R.id.rvLocations);
 
-        //PandaAdapter pandaAdapter = new PandaAdapter(this, pandas);
+        //connect pandas arraylist to recycler view
         pandaAdapter = new PandaAdapter(this, pandas);
         rvPandas.setAdapter(pandaAdapter);
 
+        //create and establish layout manager for recycler view
         LinearLayoutManager pandaManager = new LinearLayoutManager(this);
         rvPandas.setLayoutManager(pandaManager);
 
+        //when user selects an item from the spinner filter recycler view accordingly
         spFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                //when rating is selected sort pandas from highest to lowest review
                 if (spFilter.getItemAtPosition(i).toString().equalsIgnoreCase("rating")) {
                     Log.d("ratedPandas", "WE IN RATE");
                     ArrayList<Panda> ratedPandas = new ArrayList<>();
@@ -143,9 +155,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
                         ratedPandas.add(pandas.get(j));
                     }
 
+                    //sort pandas from highest to lowest review
                     Collections.sort(ratedPandas, Comparator.comparingDouble(Panda::getRating).reversed());
 
-
+                    //change adapter to show pandas in rated order
                     PandaAdapter ratedAdapter = new PandaAdapter(getApplicationContext(), ratedPandas);
                     rvPandas.setAdapter(ratedAdapter);
 
@@ -162,8 +175,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
                         distancedPandas.add(pandas.get(j));
                     }
 
+                    //sort list of pandas by distance
                     Collections.sort(distancedPandas, Comparator.comparingDouble(Panda::getDistance));
 
+                    //change adapter to be sorted by distance from close to far
                     PandaAdapter distancedAdapter = new PandaAdapter(getApplicationContext(), distancedPandas);
                     rvPandas.setAdapter(distancedAdapter);
 
@@ -173,6 +188,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
 //                    spFilter.setAdapter(filterAdapter);
                 }
                 else if (spFilter.getItemAtPosition(i).toString().equalsIgnoreCase("unsorted")) {
+                    //change adapter to be unsorted
                     rvPandas.setAdapter(pandaAdapter);
                 }
             }
@@ -193,6 +209,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
         //ItemTouchHelper helper = new ItemTouchHelper()
 
+        //change adapter to display search results when searched for
         btnSearch.setOnClickListener(e -> {
             searchAddress();
         });
@@ -228,8 +245,10 @@ public class PandaLocationsActivity extends AppCompatActivity {
     public void getPandasFromServer() {
         //ArrayList<Panda> tempPandas = new ArrayList<>();
 
+        //url for our backend
         String url = "https://pandaexpress-rating-backend-group5.onrender.com/allPandas";
 
+        //get all pandas from backend
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONArray>() {
 
@@ -238,6 +257,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
                         Log.d("getPandasFromServer", "Success!!!");
                         Log.d("getPandasFromServer", response.toString());
 
+                        //loop through response and parse out pandas
                         for (int i = 0; i < response.length(); i++) {
                             try {
                                 JSONObject responseObj = response.getJSONObject(i);
@@ -309,6 +329,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
 
     public void convertCoordinatesToDistance() {
 
+        //get permission to use location from user
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d("locationPermission", "Location: permission denied");
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
@@ -324,6 +345,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
                 double phoneLat = location.getLatitude();
                 double phoneLng = location.getLongitude();
 
+                //calculate distance from phone to each panda location and store in panda object
                 for (int i = 0; i < pandas.size(); i++) {
                     double pandaLat = pandas.get(i).getLat();
                     double pandaLng = pandas.get(i).getLon();
@@ -357,6 +379,7 @@ public class PandaLocationsActivity extends AppCompatActivity {
         String address;
         String[] addressParts;
 
+        //try to convert the coordinates into an address, then take only the street address and city
         try {
             address = geocoder.getFromLocation(lat, lng, 1).get(0).getAddressLine(0);
             addressParts = address.split(",");
