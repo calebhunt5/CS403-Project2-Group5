@@ -269,6 +269,7 @@ public class LoginActivity extends AppCompatActivity {
                     // Save session information
                     savedSessionSharedPrefs.edit().putString("sessionToken", strUserID).apply();
                     savedSessionSharedPrefs.edit().putString("user_id", strUserID).apply();
+                    savedSessionSharedPrefs.edit().putString("username", strUserName).apply();
 
                     // Go to MainActivity
                     Intent i = new Intent(LoginActivity.this, HomeActivity.class);
