@@ -13,6 +13,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -20,6 +21,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.Manifest;
@@ -53,6 +55,7 @@ import java.util.ArrayList;
 public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCallback {
     //elements on page
     TextView tvAddress, tvMilesAway;
+    Button btnAdd;
     GoogleMap map;
     ProgressBar pbLoader;
     PandaLocation pandaLocation;
@@ -78,6 +81,7 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
         tvAddress = findViewById(R.id.tvAdddress);
         tvMilesAway = findViewById(R.id.tvMilesAway);
         rvReviews = findViewById(R.id.rvReviews);
+        btnAdd = findViewById(R.id.btnAdd);
         //this loader is initially visible while everything else is invisible
         pbLoader = findViewById(R.id.pbLoader);
 
@@ -96,8 +100,17 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
         rvReviews.setLayoutManager(manager);
 
         //get ready to make request
-        queue = Volley.newRequestQueue(this);
+        queue = Volley.newRequestQueue(this.getApplicationContext());
+        getUserID();
         storeID = getIntent().getIntExtra("storeID", 0);
+
+        //on click method to go to the add review page
+        //passes in the store id
+        btnAdd.setOnClickListener(e -> {
+            Intent addIntent = new Intent(this, AddReviewActivity.class);
+            addIntent.putExtra("storeID", storeID);
+            startActivity(addIntent);
+        });
     }
 
     public void getPandaStoreData(int storeID) {
@@ -250,11 +263,39 @@ public class ExtendedActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
+    public void getUserID() {
+        //url to the server to get all panda express locations
+        String url = "https://pandaexpress-rating-backend-group5.onrender.com/users/me";
+
+        //request object - gets all the specific panda express location that was selected
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject responseObj) {
+                        try {
+                            Log.d("myuser", responseObj.toString());
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("onErrorResponse", error.toString());
+                        throw new RuntimeException(error);
+                    }
+                });
+
+        queue.add(jsonObjectRequest);
+    }
+
     public void makeEverythingVisible() {
         //make elements which was initially invisible visible
         tvAddress.setVisibility(View.VISIBLE);
         tvMilesAway.setVisibility(View.VISIBLE);
         rvReviews.setVisibility(View.VISIBLE);
+        btnAdd.setVisibility(View.VISIBLE);
 
         //make loader invisible
         pbLoader.setVisibility(View.INVISIBLE);
