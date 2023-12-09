@@ -51,11 +51,11 @@ public class NotificationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 
-        userSharedPref = getSharedPreferences("login_fields", MODE_PRIVATE);
-        Log.d("SharedPrefTest", userSharedPref.getString("email", "NOOOOO"));
+        userSharedPref = getSharedPreferences("saved_session", MODE_PRIVATE);
+        Log.d("SharedPrefTest", userSharedPref.getString("user_id", "NOOOOO"));
 
-        if (userSharedPref.contains("email")) {
-            String s = userSharedPref.getString("email", "DEFAULT");
+        if (userSharedPref.contains("user_id")) {
+            String s = userSharedPref.getString("user_id", "DEFAULT");
 
             if (s.equals("DEFAULT") == false) {
                 user_id = s;

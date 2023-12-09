@@ -49,7 +49,6 @@ public class HomeActivity extends AppCompatActivity {
     AutoCompleteTextView atxtSearchAddress; // Search address text view
     Button btnSearch; // Search button
 
-    SessionManager sessionManager; // SessionManager to store session
     CookieManager cookieManager; // CookieManager to store cookies
 
     List<String> arrPandaLocations = new ArrayList<>(); // List of Panda locations from the backend server
